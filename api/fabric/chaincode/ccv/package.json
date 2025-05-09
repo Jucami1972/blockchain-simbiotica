@@ -1,0 +1,17 @@
+{
+  "name": "ccv",
+  "version": "1.0.0",
+  "description": "Chaincode para telemedicina",
+  "main": "index.js",
+  "engines": {
+    "node": ">=14.0.0 <=14.x",
+    "npm": "^6.0.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "fabric-contract-api": "~2.2.0",
+    "fabric-shim": "~2.2.0"
+  }
+}

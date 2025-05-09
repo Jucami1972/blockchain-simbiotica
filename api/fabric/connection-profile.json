@@ -1,0 +1,90 @@
+{
+    "name": "basic-network",
+    "version": "1.0.0",
+    "client": {
+        "organization": "Org1",
+        "connection": {
+            "timeout": {
+                "peer": {
+                    "endorser": "300"
+                }
+            }
+        }
+    },
+    "organizations": {
+        "Org1": {
+            "mspid": "Org1MSP",
+            "peers": [
+                "peer0.org1.example.com"
+            ],
+            "certificateAuthorities": [
+                "ca_org1"
+            ]
+        },
+        "Org2": {
+            "mspid": "Org2MSP",
+            "peers": [
+                "peer0.org2.example.com"
+            ],
+            "certificateAuthorities": [
+                "ca_org2"
+            ]
+        }
+    },
+    "peers": {
+        "peer0.org1.example.com": {
+            "url": "grpcs://localhost:7051",
+            "tlsCACerts": {
+                "path": "/home/jucami29/fabric-workspace/blockchain-simbiotica/fabric-network/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "localhost",
+                "hostnameOverride": "localhost"
+            }
+        },
+        "peer0.org2.example.com": {
+            "url": "grpcs://localhost:9051",
+            "tlsCACerts": {
+                "path": "/home/jucami29/fabric-workspace/blockchain-simbiotica/fabric-network/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "localhost",
+                "hostnameOverride": "localhost"
+            }
+        }
+    },
+    "orderers": {
+        "orderer.example.com": {
+            "url": "grpcs://localhost:7050",
+            "tlsCACerts": {
+                "path": "/home/jucami29/fabric-workspace/blockchain-simbiotica/fabric-network/fabric-samples/test-network/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/tls/ca.crt"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "localhost",
+                "hostnameOverride": "localhost"
+            }
+        }
+    },
+    "certificateAuthorities": {
+        "ca_org1": {
+            "url": "https://localhost:7054",
+            "caName": "ca-org1",
+            "tlsCACerts": {
+                "path": "/home/jucami29/fabric-workspace/blockchain-simbiotica/fabric-network/fabric-samples/test-network/organizations/peerOrganizations/org1.example.com/msp/tlscacerts/ca.crt"
+            },
+            "httpOptions": {
+                "verify": false
+            }
+        },
+        "ca_org2": {
+            "url": "https://localhost:8054",
+            "caName": "ca-org2",
+            "tlsCACerts": {
+                "path": "/home/jucami29/fabric-workspace/blockchain-simbiotica/fabric-network/fabric-samples/test-network/organizations/peerOrganizations/org2.example.com/msp/tlscacerts/ca.crt"
+            },
+            "httpOptions": {
+                "verify": false
+            }
+        }
+    }
+} 

@@ -1,0 +1,32 @@
+{
+  "name": "blockchain-simbiotica-api",
+  "version": "1.0.0",
+  "description": "API REST para la Blockchain Simbiotica",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "nodemon src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "blockchain",
+    "hyperledger",
+    "fabric",
+    "api",
+    "simbiotica"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "dotenv-expand": "^12.0.2",
+    "express": "^4.17.3",
+    "fabric-ca-client": "^2.2.10",
+    "fabric-network": "^2.2.10",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.15"
+  }
+}
