@@ -1,0 +1,6 @@
+node_modules/
+*.log
+fabric-network/fabric-samples/
+wallet/
+ccv.tar.gz
+.env
