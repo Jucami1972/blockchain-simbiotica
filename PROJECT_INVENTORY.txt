@@ -1,0 +1,22 @@
+
+/home/jucami29/fabric-workspace/blockchain-simbiotica
+├── .git
+├── .github
+├── .gitignore
+├── .gitmodules
+├── PROJECT_INVENTORY.txt
+├── api
+├── backup_20250510
+├── fabric
+├── fabric-network
+├── fabric-samples
+├── proyecto_informe_completo.txt
+├── proyecto_informe_real.txt
+├── proyecto_informe_tec.txt
+└── reports
+
+directory: 8 file: 6
+
+
+
+[2K[1G

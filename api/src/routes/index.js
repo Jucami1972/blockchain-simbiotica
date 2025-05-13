@@ -1,4 +1,4 @@
-// Este archivo está listo para ser editado 
+// Este archivo está listo para ser editado
 
 const express = require('express');
 const router = express.Router();
@@ -16,4 +16,4 @@ router.use('/contributions', contributionRoutes);
 // Rutas de verificaciones
 router.use('/verify', verificationRoutes);
 
-module.exports = router; 
+module.exports = router;

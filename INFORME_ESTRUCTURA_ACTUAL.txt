@@ -1,0 +1,130 @@
+=== INFORME TÉCNICO DEL PROYECTO BLOCKCHAIN SIMBIÓTICA ===
+
+# 1. Estructura Completa de Directorios
+
+..
+../.git
+../.github
+../.github/workflows
+../api
+../api/.git
+../api/.github
+../api/.github/workflows
+../api/api
+../api/api/docs
+../api/api/src
+../api/api/src/utils
+../api/docs
+../api/fabric
+../api/fabric/api
+../api/fabric/backups
+../api/fabric/integration-tests
+../api/fabric/integration-tests/fixtures
+../api/fabric/integration-tests/fixtures/wallet
+../api/fabric/network
+../api/fabric/network-config
+../api/fabric/network/crypto-config
+../api/fabric/network/docker
+../api/fabric/scripts
+../api/node_modules
+../api/src
+../api/src/controllers
+../api/src/fabric
+../api/src/routes
+../api/src/utils
+../api/test
+../api/test/integration
+../api/test/integration/fixtures
+../api/~
+../backup_20250510
+../docs
+../docs/architecture
+../fabric
+../fabric-network
+../fabric-network/bin
+../fabric-network/channel-artifacts
+../fabric-network/config
+../fabric-network/crypto-config
+../fabric-network/scripts
+../fabric-samples
+../fabric/chaincode
+../fabric/chaincode/ccv
+../fabric/chaincode/ccv/lib
+../fabric/chaincode/ccv/node_modules
+../fabric/chaincode/ccv/src
+../fabric/chaincode/ccv/test
+../fabric/integration-tests
+../fabric/integration-tests/fixtures
+../fabric/integration-tests/fixtures/wallet
+../fabric/integration-tests/integration
+../fabric/integration-tests/integration/fixtures
+../fabric/integration-tests/integration/fixtures/wallet
+../fabric/integration-tests/test-results
+../fabric/network
+../fabric/network-config
+../fabric/network-config/configtx
+../fabric/network-config/crypto-config
+../fabric/network-config/docker
+../fabric/scripts
+../reports
+
+# 2. Archivos de Código Organizados por Tipo
+
+JavaScript (.js):
+../api/api/src/enrollAdmin.js
+../api/api/src/utils/cleanWallet.js
+../api/src/app.js
+../api/src/controllers/contributionController.js
+../api/src/controllers/userController.js
+../api/src/controllers/verificationController.js
+../api/src/enrollAdmin.js
+../api/src/fabric/network.js
+../api/src/routes/contributionRoutes.js
+../api/src/routes/index.js
+../api/src/routes/userRoutes.js
+../api/src/routes/verificationRoutes.js
+../api/src/utils/checkNetwork.js
+../api/src/utils/cleanWallet.js
+../api/src/utils/enrollUser1.js
+../api/src/utils/testWallet.js
+../fabric/chaincode/ccv/index.js
+../fabric/chaincode/ccv/lib/ccv.js
+../fabric/integration-tests/ccvContract.test.js
+../fabric/integration-tests/integration/ccvContract.test.js
+../fabric/integration-tests/integration/fixtures/createUser1.js
+../fabric/integration-tests/integration/fixtures/enrollUser1.js
+
+JSON (.json):
+../api/package-lock.json
+../api/package.json
+../fabric/chaincode/ccv/package-lock.json
+../fabric/chaincode/ccv/package.json
+../fabric/integration-tests/integration/fixtures/connection.json
+
+Shell Scripts (.sh):
+../api/fabric/scripts/backup_ledger.sh
+../api/fabric/scripts/deploy.sh
+../api/fabric/scripts/restart-test-network.sh
+../api/fabric/scripts/validate-environment.sh
+../fabric/scripts/deploy.sh
+../fabric/scripts/restart.sh
+../fabric/scripts/validate-environment.sh
+
+# 3. Distribución de Tipos de Archivos
+
+Total JS:    22
+Total JSON:  5
+Total SH:    7
+
+# 4. Resumen de Directorios
+
+api/ - Capa de API REST y controladores principales
+fabric/ - Configuración de red Hyperledger Fabric
+  ├── network/ - Configuración de canales y organizaciones
+  ├── scripts/ - Automatización de despliegue y gestión
+  └── integration-tests/ - Pruebas E2E y fixtures
+src/ - Código fuente principal de la aplicación
+  ├── controllers/ - Lógica de negocio por dominio
+  ├── utils/ - Utilidades de conexión con Fabric
+  └── routes/ - Definición de endpoints API
+docs/ - Documentación técnica y guías

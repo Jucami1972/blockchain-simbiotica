@@ -6,7 +6,13 @@
   "scripts": {
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/ --exit --timeout 15000",
+    "test:integration": "mocha test/integration --exit --timeout 15000",
+    "clean:wallet": "node src/utils/cleanWallet.js",
+    "check:network": "node src/utils/checkNetwork.js",
+    "setup:user1": "node src/utils/enrollUser1.js",
+    "pretest": "npm run check:network",
+    "restart:env": "bash restart.sh"
   },
   "keywords": [
     "blockchain",
@@ -27,6 +33,11 @@
     "uuid": "^8.3.2"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "chai": "^4.3.7",
+    "eslint": "^9.26.0",
+    "eslint-config-prettier": "^10.1.5",
+    "mocha": "^10.2.0",
+    "nodemon": "^2.0.15",
+    "prettier": "^3.5.3"
   }
 }

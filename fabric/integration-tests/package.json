@@ -1,0 +1,17 @@
+{
+  "name": "integration-tests",
+  "version": "1.0.0",
+  "description": "Pruebas de integración para Blockchain Simbiótica",
+  "main": "ccvContract.test.js",
+  "type": "commonjs",
+  "scripts": {
+    "test": "cd ~/fabric-workspace/blockchain-simbiotica/fabric/integration-tests && npx mocha test/integration/*.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "chai": "^4.3.4",
+    "mocha": "^9.2.2"
+  }
+}

@@ -1,4 +1,4 @@
-// Este archivo está listo para ser editado con las rutas de usuario. 
+// Este archivo está listo para ser editado con las rutas de usuario.
 
 const express = require('express');
 const router = express.Router();
@@ -9,4 +9,4 @@ router.post('/register', userController.register);
 router.get('/:id', userController.getUser);
 router.get('/', userController.getAllUsers);
 
-module.exports = router; 
+module.exports = router;

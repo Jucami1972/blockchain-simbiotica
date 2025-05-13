@@ -21,18 +21,18 @@ const PORT = process.env.API_PORT || 3000;
 
 // Iniciar el servidor
 const startServer = async () => {
-    try {
-        // Matricular admin si no existe
-        await enrollAdmin();
+  try {
+    // Matricular admin si no existe
+    await enrollAdmin();
 
-        // Iniciar servidor
-        app.listen(PORT, () => {
-            console.log(`Servidor iniciado en el puerto ${PORT}`);
-        });
-    } catch (error) {
-        console.error(`Error al iniciar el servidor: ${error}`);
-        process.exit(1);
-    }
+    // Iniciar servidor
+    app.listen(PORT, () => {
+      console.log(`Servidor iniciado en el puerto ${PORT}`);
+    });
+  } catch (error) {
+    console.error(`Error al iniciar el servidor: ${error}`);
+    process.exit(1);
+  }
 };
 
-startServer(); 
+startServer();
