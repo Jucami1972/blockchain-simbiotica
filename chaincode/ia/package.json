@@ -1,0 +1,26 @@
+{
+  "name": "ia-chaincode",
+  "version": "1.0.0",
+  "description": "Chaincode para el módulo de inteligencia artificial de la Blockchain Simbiótica",
+  "main": "index.js",
+  "scripts": {
+    "start": "fabric-chaincode-node start",
+    "test": "mocha test/**/*.js"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "author": "Blockchain Simbiótica",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "fabric-contract-api": "^2.5.2",
+    "fabric-shim": "^2.5.2"
+  },
+  "devDependencies": {
+    "chai": "^4.3.7",
+    "mocha": "^10.2.0",
+    "sinon": "^15.0.3",
+    "sinon-chai": "^3.7.0"
+  }
+}

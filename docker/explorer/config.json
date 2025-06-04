@@ -1,0 +1,241 @@
+{
+  "name": "Blockchain Simbiotica Network",
+  "version": "1.0.0",
+  "client": {
+    "organization": "Org1MSP",
+    "connection": {
+      "timeout": {
+        "peer": {
+          "endorser": "300"
+        },
+        "orderer": "300"
+      }
+    },
+    "adminCredential": {
+      "id": "admin",
+      "password": "adminpw"
+    },
+    "enableAuthentication": true,
+    "tlsEnable": true
+  },
+  "channels": {
+    "simbioticachannel": {
+      "peers": {
+        "peer0.org1.blockchain-simbiotica.com": {},
+        "peer1.org1.blockchain-simbiotica.com": {},
+        "peer2.org1.blockchain-simbiotica.com": {},
+        "peer0.org2.blockchain-simbiotica.com": {},
+        "peer1.org2.blockchain-simbiotica.com": {},
+        "peer2.org2.blockchain-simbiotica.com": {},
+        "peer0.org3.blockchain-simbiotica.com": {},
+        "peer1.org3.blockchain-simbiotica.com": {},
+        "peer2.org3.blockchain-simbiotica.com": {}
+      },
+      "connection": {
+        "timeout": {
+          "eventHub": "300",
+          "eventReg": "300"
+        }
+      }
+    }
+  },
+  "organizations": {
+    "OrdererMSP": {
+      "mspid": "OrdererMSP",
+      "orderers": [
+        "orderer0.blockchain-simbiotica.com",
+        "orderer1.blockchain-simbiotica.com",
+        "orderer2.blockchain-simbiotica.com",
+        "orderer3.blockchain-simbiotica.com",
+        "orderer4.blockchain-simbiotica.com"
+      ],
+      "adminPrivateKey": {
+        "path": "/etc/explorer/crypto/ordererOrganizations/blockchain-simbiotica.com/users/Admin@blockchain-simbiotica.com/msp/keystore"
+      },
+      "signedCert": {
+        "path": "/etc/explorer/crypto/ordererOrganizations/blockchain-simbiotica.com/users/Admin@blockchain-simbiotica.com/msp/signcerts/Admin@blockchain-simbiotica.com-cert.pem"
+      }
+    },
+    "Org1MSP": {
+      "mspid": "Org1MSP",
+      "peers": [
+        "peer0.org1.blockchain-simbiotica.com",
+        "peer1.org1.blockchain-simbiotica.com",
+        "peer2.org1.blockchain-simbiotica.com"
+      ],
+      "adminPrivateKey": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org1.blockchain-simbiotica.com/users/Admin@org1.blockchain-simbiotica.com/msp/keystore"
+      },
+      "signedCert": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org1.blockchain-simbiotica.com/users/Admin@org1.blockchain-simbiotica.com/msp/signcerts/Admin@org1.blockchain-simbiotica.com-cert.pem"
+      }
+    },
+    "Org2MSP": {
+      "mspid": "Org2MSP",
+      "peers": [
+        "peer0.org2.blockchain-simbiotica.com",
+        "peer1.org2.blockchain-simbiotica.com",
+        "peer2.org2.blockchain-simbiotica.com"
+      ],
+      "adminPrivateKey": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org2.blockchain-simbiotica.com/users/Admin@org2.blockchain-simbiotica.com/msp/keystore"
+      },
+      "signedCert": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org2.blockchain-simbiotica.com/users/Admin@org2.blockchain-simbiotica.com/msp/signcerts/Admin@org2.blockchain-simbiotica.com-cert.pem"
+      }
+    },
+    "Org3MSP": {
+      "mspid": "Org3MSP",
+      "peers": [
+        "peer0.org3.blockchain-simbiotica.com",
+        "peer1.org3.blockchain-simbiotica.com",
+        "peer2.org3.blockchain-simbiotica.com"
+      ],
+      "adminPrivateKey": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org3.blockchain-simbiotica.com/users/Admin@org3.blockchain-simbiotica.com/msp/keystore"
+      },
+      "signedCert": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org3.blockchain-simbiotica.com/users/Admin@org3.blockchain-simbiotica.com/msp/signcerts/Admin@org3.blockchain-simbiotica.com-cert.pem"
+      }
+    }
+  },
+  "orderers": {
+    "orderer0.blockchain-simbiotica.com": {
+      "url": "grpcs://orderer0.blockchain-simbiotica.com:7050",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer0.blockchain-simbiotica.com/msp/tlscacerts/tlsca.blockchain-simbiotica.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer0.blockchain-simbiotica.com"
+      }
+    },
+    "orderer1.blockchain-simbiotica.com": {
+      "url": "grpcs://orderer1.blockchain-simbiotica.com:7051",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer1.blockchain-simbiotica.com/msp/tlscacerts/tlsca.blockchain-simbiotica.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer1.blockchain-simbiotica.com"
+      }
+    },
+    "orderer2.blockchain-simbiotica.com": {
+      "url": "grpcs://orderer2.blockchain-simbiotica.com:7052",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer2.blockchain-simbiotica.com/msp/tlscacerts/tlsca.blockchain-simbiotica.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer2.blockchain-simbiotica.com"
+      }
+    },
+    "orderer3.blockchain-simbiotica.com": {
+      "url": "grpcs://orderer3.blockchain-simbiotica.com:7053",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer3.blockchain-simbiotica.com/msp/tlscacerts/tlsca.blockchain-simbiotica.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer3.blockchain-simbiotica.com"
+      }
+    },
+    "orderer4.blockchain-simbiotica.com": {
+      "url": "grpcs://orderer4.blockchain-simbiotica.com:7055",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer4.blockchain-simbiotica.com/msp/tlscacerts/tlsca.blockchain-simbiotica.com-cert.pem"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "orderer4.blockchain-simbiotica.com"
+      }
+    }
+  },
+  "peers": {
+    "peer0.org1.blockchain-simbiotica.com": {
+      "url": "grpcs://peer0.org1.blockchain-simbiotica.com:7061",
+      "eventUrl": "grpcs://peer0.org1.blockchain-simbiotica.com:7061",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org1.blockchain-simbiotica.com/peers/peer0.org1.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.org1.blockchain-simbiotica.com"
+      }
+    },
+    "peer1.org1.blockchain-simbiotica.com": {
+      "url": "grpcs://peer1.org1.blockchain-simbiotica.com:7063",
+      "eventUrl": "grpcs://peer1.org1.blockchain-simbiotica.com:7063",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org1.blockchain-simbiotica.com/peers/peer1.org1.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer1.org1.blockchain-simbiotica.com"
+      }
+    },
+    "peer2.org1.blockchain-simbiotica.com": {
+      "url": "grpcs://peer2.org1.blockchain-simbiotica.com:7065",
+      "eventUrl": "grpcs://peer2.org1.blockchain-simbiotica.com:7065",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org1.blockchain-simbiotica.com/peers/peer2.org1.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer2.org1.blockchain-simbiotica.com"
+      }
+    },
+    "peer0.org2.blockchain-simbiotica.com": {
+      "url": "grpcs://peer0.org2.blockchain-simbiotica.com:9061",
+      "eventUrl": "grpcs://peer0.org2.blockchain-simbiotica.com:9061",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org2.blockchain-simbiotica.com/peers/peer0.org2.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.org2.blockchain-simbiotica.com"
+      }
+    },
+    "peer1.org2.blockchain-simbiotica.com": {
+      "url": "grpcs://peer1.org2.blockchain-simbiotica.com:9063",
+      "eventUrl": "grpcs://peer1.org2.blockchain-simbiotica.com:9063",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org2.blockchain-simbiotica.com/peers/peer1.org2.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer1.org2.blockchain-simbiotica.com"
+      }
+    },
+    "peer2.org2.blockchain-simbiotica.com": {
+      "url": "grpcs://peer2.org2.blockchain-simbiotica.com:9065",
+      "eventUrl": "grpcs://peer2.org2.blockchain-simbiotica.com:9065",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org2.blockchain-simbiotica.com/peers/peer2.org2.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer2.org2.blockchain-simbiotica.com"
+      }
+    },
+    "peer0.org3.blockchain-simbiotica.com": {
+      "url": "grpcs://peer0.org3.blockchain-simbiotica.com:11061",
+      "eventUrl": "grpcs://peer0.org3.blockchain-simbiotica.com:11061",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org3.blockchain-simbiotica.com/peers/peer0.org3.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer0.org3.blockchain-simbiotica.com"
+      }
+    },
+    "peer1.org3.blockchain-simbiotica.com": {
+      "url": "grpcs://peer1.org3.blockchain-simbiotica.com:11063",
+      "eventUrl": "grpcs://peer1.org3.blockchain-simbiotica.com:11063",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org3.blockchain-simbiotica.com/peers/peer1.org3.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer1.org3.blockchain-simbiotica.com"
+      }
+    },
+    "peer2.org3.blockchain-simbiotica.com": {
+      "url": "grpcs://peer2.org3.blockchain-simbiotica.com:11065",
+      "eventUrl": "grpcs://peer2.org3.blockchain-simbiotica.com:11065",
+      "tlsCACerts": {
+        "path": "/etc/explorer/crypto/peerOrganizations/org3.blockchain-simbiotica.com/peers/peer2.org3.blockchain-simbiotica.com/tls/ca.crt"
+      },
+      "grpcOptions": {
+        "ssl-target-name-override": "peer2.org3.blockchain-simbiotica.com"
+      }
+    }
+  }
+}
