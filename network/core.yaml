@@ -1,0 +1,14 @@
+peer:
+  id: cli
+  networkId: dev
+  address: peer0.org1.example.com:7051
+  localMspId: Org1MSP
+  mspConfigPath: ./crypto-config/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp
+  tls:
+    enabled: true
+    rootcert:
+      file: ./crypto-config/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt
+
+logging:
+  level: info
+
