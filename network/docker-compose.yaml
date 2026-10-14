@@ -228,7 +228,7 @@ services:
       - ORDERER_GENERAL_CLUSTER_CLIENTPRIVATEKEY=/var/hyperledger/orderer/tls/server.key
       - ORDERER_GENERAL_CLUSTER_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
       - ORDERER_FILELEDGER_LOCATION=/var/hyperledger/production/orderer
-      - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:9443
+      - ORDERER_OPERATIONS_LISTENADDRESS=0.0.0.0:9445
     ports:
       - "7053:7050"
     volumes:
