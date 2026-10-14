@@ -1038,6 +1038,39 @@ class AchieveXContract extends Contract {
         
         return challenges;
     }
+
+    /**
+     * Obtiene estadísticas globales de logros
+     * @param {Context} ctx - Contexto de transacción
+     * @returns {Object} - Estadísticas: categorías, logros, premios otorgados y retos
+     */
+    async getAchievementStats(ctx) {
+        const stats = {
+            totalCategories: 0,
+            totalAchievements: 0,
+            totalAwards: 0,
+            totalChallenges: 0
+        };
+
+        const prefixes = [
+            ['category_', 'totalCategories'],
+            ['achievement_', 'totalAchievements'],
+            ['user_achievement_', 'totalAwards'],
+            ['challenge_', 'totalChallenges']
+        ];
+
+        for (const [prefix, key] of prefixes) {
+            const iterator = await ctx.stub.getStateByRange(prefix, prefix + '\uffff');
+            let result = await iterator.next();
+            while (!result.done) {
+                stats[key]++;
+                result = await iterator.next();
+            }
+            await iterator.close();
+        }
+
+        return stats;
+    }
 }
 
 module.exports = AchieveXContract;

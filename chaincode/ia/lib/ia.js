@@ -1224,6 +1224,40 @@ class IAContract extends Contract {
         
         return updatedEntrenamiento;
     }
+
+    /**
+     * Obtiene las solicitudes realizadas a un modelo de IA
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} modeloId - ID del modelo
+     * @returns {Array} - Lista de solicitudes del modelo
+     */
+    async getSolicitudesModelo(ctx, modeloId) {
+        // Validar parámetros
+        if (!modeloId) {
+            throw new Error('Parámetros inválidos: se requiere ID del modelo');
+        }
+
+        // Consultar solicitudes del modelo
+        const query = {
+            selector: {
+                modeloId: modeloId
+            },
+            sort: [{ fechaSolicitud: 'desc' }]
+        };
+
+        const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
+        const solicitudes = [];
+
+        let result = await iterator.next();
+        while (!result.done) {
+            const solicitud = JSON.parse(result.value.value.toString());
+            solicitudes.push(solicitud);
+            result = await iterator.next();
+        }
+        await iterator.close();
+
+        return solicitudes;
+    }
 }
 
 module.exports = IAContract;
