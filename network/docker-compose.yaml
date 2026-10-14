@@ -831,7 +831,7 @@ services:
     command: /bin/bash
     volumes:
       - /var/run/docker.sock:/host/var/run/docker.sock
-      - ../../:/opt/gopath/src/github.com/hyperledger/fabric/peer
+      - ../:/opt/gopath/src/github.com/hyperledger/fabric/peer
     networks:
       - simbiotica_network
     depends_on:
