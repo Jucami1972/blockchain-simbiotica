@@ -846,6 +846,312 @@ class IdentityContract extends Contract {
         
         return config;
     }
+
+    /**
+     * Registra un nuevo usuario (cuenta de aplicacion)
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} userId - ID único del usuario
+     * @param {String} userData - Datos del usuario en formato JSON (username, email, passwordHash, role...)
+     * @returns {Object} - Información del usuario registrado
+     */
+    async registerUser(ctx, userId, userData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!userId || !userData) {
+            throw new Error('Parámetros inválidos: se requiere ID del usuario y datos del usuario');
+        }
+
+        let userDataObj;
+        try {
+            userDataObj = JSON.parse(userData);
+        } catch (error) {
+            throw new Error('Los datos del usuario deben estar en formato JSON válido');
+        }
+
+        if (!userDataObj.username || !userDataObj.email) {
+            throw new Error('Los datos del usuario deben incluir username y email');
+        }
+
+        // Verificar que el usuario no exista
+        const existingBuffer = await ctx.stub.getState(`user_${userId}`);
+        if (existingBuffer && existingBuffer.length > 0) {
+            throw new Error(`El usuario con ID ${userId} ya existe`);
+        }
+
+        // Verificar unicidad de username y email
+        const dupQuery = {
+            selector: {
+                docType: 'user',
+                $or: [{ username: userDataObj.username }, { email: userDataObj.email }]
+            }
+        };
+        const dupIter = await ctx.stub.getQueryResult(JSON.stringify(dupQuery));
+        const dupRes = await dupIter.next();
+        await dupIter.close();
+        if (!dupRes.done) {
+            throw new Error('El username o email ya está registrado');
+        }
+
+        const now = new Date();
+        const user = {
+            docType: 'user',
+            userId: userId,
+            username: userDataObj.username,
+            email: userDataObj.email,
+            fullName: userDataObj.fullName || '',
+            passwordHash: userDataObj.passwordHash || '',
+            role: userDataObj.role || 'user',
+            status: 'active',
+            createdAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+            createdBy: caller
+        };
+
+        await ctx.stub.putState(`user_${userId}`, Buffer.from(JSON.stringify(user)));
+
+        const userEvent = {
+            type: 'registerUser',
+            userId: userId,
+            username: user.username,
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('UserRegistered', Buffer.from(JSON.stringify(userEvent)));
+
+        return user;
+    }
+
+    /**
+     * Obtiene un usuario por su ID
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} userId - ID del usuario
+     * @returns {Object} - Información del usuario
+     */
+    async getUser(ctx, userId) {
+        if (!userId) {
+            throw new Error('Parámetros inválidos: se requiere ID del usuario');
+        }
+
+        const userBuffer = await ctx.stub.getState(`user_${userId}`);
+        if (!userBuffer || userBuffer.length === 0) {
+            throw new Error(`Usuario con ID ${userId} no encontrado`);
+        }
+
+        return JSON.parse(userBuffer.toString());
+    }
+
+    /**
+     * Busca un usuario por nombre de usuario
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} username - Nombre de usuario
+     * @returns {Object} - Información del usuario
+     */
+    async getUserByUsername(ctx, username) {
+        if (!username) {
+            throw new Error('Parámetros inválidos: se requiere nombre de usuario');
+        }
+
+        const query = { selector: { docType: 'user', username: username } };
+        const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
+        const result = await iterator.next();
+        await iterator.close();
+
+        if (result.done) {
+            throw new Error(`Usuario con username ${username} no encontrado`);
+        }
+
+        return JSON.parse(result.value.value.toString());
+    }
+
+    /**
+     * Busca un usuario por correo electrónico
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} email - Correo electrónico
+     * @returns {Object} - Información del usuario
+     */
+    async getUserByEmail(ctx, email) {
+        if (!email) {
+            throw new Error('Parámetros inválidos: se requiere correo electrónico');
+        }
+
+        const query = { selector: { docType: 'user', email: email } };
+        const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
+        const result = await iterator.next();
+        await iterator.close();
+
+        if (result.done) {
+            throw new Error(`Usuario con email ${email} no encontrado`);
+        }
+
+        return JSON.parse(result.value.value.toString());
+    }
+
+    /**
+     * Lista usuarios con paginación
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} limit - Límite de resultados (opcional)
+     * @param {String} offset - Desplazamiento (opcional)
+     * @returns {Array} - Lista de usuarios
+     */
+    async getUsers(ctx, limit, offset) {
+        const query = { selector: { docType: 'user' } };
+        const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
+
+        const maxResults = limit ? parseInt(limit, 10) : 100;
+        const skip = offset ? parseInt(offset, 10) : 0;
+        const users = [];
+        let skipped = 0;
+
+        let result = await iterator.next();
+        while (!result.done && users.length < maxResults) {
+            if (skipped < skip) {
+                skipped++;
+            } else {
+                users.push(JSON.parse(result.value.value.toString()));
+            }
+            result = await iterator.next();
+        }
+        await iterator.close();
+
+        return users;
+    }
+
+    /**
+     * Actualiza los datos de un usuario
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} userId - ID del usuario
+     * @param {String} userData - Datos a actualizar en formato JSON
+     * @returns {Object} - Información del usuario actualizada
+     */
+    async updateUser(ctx, userId, userData) {
+        const caller = ctx.clientIdentity.getID();
+
+        if (!userId || !userData) {
+            throw new Error('Parámetros inválidos: se requiere ID del usuario y datos');
+        }
+
+        let userDataObj;
+        try {
+            userDataObj = JSON.parse(userData);
+        } catch (error) {
+            throw new Error('Los datos del usuario deben estar en formato JSON válido');
+        }
+
+        const userBuffer = await ctx.stub.getState(`user_${userId}`);
+        if (!userBuffer || userBuffer.length === 0) {
+            throw new Error(`Usuario con ID ${userId} no encontrado`);
+        }
+
+        const user = JSON.parse(userBuffer.toString());
+
+        // No permitir cambiar el userId
+        delete userDataObj.userId;
+        delete userDataObj.docType;
+
+        Object.assign(user, userDataObj);
+        user.updatedAt = new Date().toISOString();
+
+        await ctx.stub.putState(`user_${userId}`, Buffer.from(JSON.stringify(user)));
+
+        const userEvent = {
+            type: 'updateUser',
+            userId: userId,
+            updatedBy: caller,
+            timestamp: user.updatedAt
+        };
+        await ctx.stub.setEvent('UserUpdated', Buffer.from(JSON.stringify(userEvent)));
+
+        return user;
+    }
+
+    /**
+     * Elimina un usuario
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} userId - ID del usuario
+     * @returns {Object} - Confirmación de eliminación
+     */
+    async deleteUser(ctx, userId) {
+        const caller = ctx.clientIdentity.getID();
+
+        if (!userId) {
+            throw new Error('Parámetros inválidos: se requiere ID del usuario');
+        }
+
+        const userBuffer = await ctx.stub.getState(`user_${userId}`);
+        if (!userBuffer || userBuffer.length === 0) {
+            throw new Error(`Usuario con ID ${userId} no encontrado`);
+        }
+
+        await ctx.stub.deleteState(`user_${userId}`);
+
+        const userEvent = {
+            type: 'deleteUser',
+            userId: userId,
+            deletedBy: caller,
+            timestamp: new Date().toISOString()
+        };
+        await ctx.stub.setEvent('UserDeleted', Buffer.from(JSON.stringify(userEvent)));
+
+        return { userId: userId, deleted: true };
+    }
+
+    /**
+     * Registra una credencial con ID específico para un usuario
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} credentialId - ID de la credencial
+     * @param {String} userId - ID del usuario sujeto
+     * @param {String} issuer - Emisor de la credencial
+     * @param {String} credentialData - Datos de la credencial en formato JSON
+     * @returns {Object} - Información de la credencial registrada
+     */
+    async registerCredential(ctx, credentialId, userId, issuer, credentialData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!credentialId || !userId || !issuer || !credentialData) {
+            throw new Error('Parámetros inválidos: se requiere credentialId, userId, issuer y credentialData');
+        }
+
+        let credentialDataObj;
+        try {
+            credentialDataObj = JSON.parse(credentialData);
+        } catch (error) {
+            throw new Error('Los datos de la credencial deben estar en formato JSON válido');
+        }
+
+        // Verificar que la credencial no exista
+        const existingBuffer = await ctx.stub.getState(credentialId);
+        if (existingBuffer && existingBuffer.length > 0) {
+            throw new Error(`La credencial con ID ${credentialId} ya existe`);
+        }
+
+        const now = new Date();
+        const credential = {
+            docType: 'credential',
+            id: credentialId,
+            issuer: issuer,
+            credentialSubject: {
+                id: userId,
+                claims: credentialDataObj.claims || credentialDataObj
+            },
+            issuanceDate: now.toISOString(),
+            status: 'active',
+            createdBy: caller
+        };
+
+        await ctx.stub.putState(credentialId, Buffer.from(JSON.stringify(credential)));
+
+        const credentialEvent = {
+            type: 'registerCredential',
+            credentialId: credentialId,
+            subject: userId,
+            issuer: issuer,
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('CredentialRegistered', Buffer.from(JSON.stringify(credentialEvent)));
+
+        return credential;
+    }
 }
 
 module.exports = IdentityContract;

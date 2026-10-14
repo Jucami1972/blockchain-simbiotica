@@ -445,6 +445,7 @@ class TelemedicinContract extends Contract {
         // Crear cita
         const appointmentId = `appointment_${patientId}_${now.getTime()}`;
         const appointment = {
+            docType: 'appointment',
             id: appointmentId,
             patientId: patientId,
             doctorId: doctorId,
@@ -846,6 +847,469 @@ class TelemedicinContract extends Contract {
         }
         
         return prescriptions;
+    }
+
+    /**
+     * Registra un nuevo médico en el sistema
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} doctorId - ID único del médico
+     * @param {String} doctorData - Datos del médico en formato JSON
+     * @returns {Object} - Información del médico registrado
+     */
+    async registerDoctor(ctx, doctorId, doctorData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!doctorId || !doctorData) {
+            throw new Error('Parámetros inválidos: se requiere ID del médico y datos del médico');
+        }
+
+        let doctorDataObj;
+        try {
+            doctorDataObj = JSON.parse(doctorData);
+        } catch (error) {
+            throw new Error('Los datos del médico deben estar en formato JSON válido');
+        }
+
+        // Verificar si el médico ya existe
+        const existingBuffer = await ctx.stub.getState(`doctor_${doctorId}`);
+        if (existingBuffer && existingBuffer.length > 0) {
+            throw new Error(`El médico con ID ${doctorId} ya existe`);
+        }
+
+        const now = new Date();
+        const doctor = {
+            docType: 'doctor',
+            id: doctorId,
+            data: doctorDataObj,
+            status: 'active',
+            registeredAt: now.toISOString(),
+            updatedAt: now.toISOString(),
+            registeredBy: caller
+        };
+
+        await ctx.stub.putState(`doctor_${doctorId}`, Buffer.from(JSON.stringify(doctor)));
+
+        const doctorEvent = {
+            type: 'registerDoctor',
+            doctorId: doctorId,
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('DoctorRegistered', Buffer.from(JSON.stringify(doctorEvent)));
+
+        return doctor;
+    }
+
+    /**
+     * Actualiza los datos de un médico
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} doctorId - ID del médico
+     * @param {String} doctorData - Nuevos datos del médico en formato JSON
+     * @returns {Object} - Información del médico actualizada
+     */
+    async updateDoctor(ctx, doctorId, doctorData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!doctorId || !doctorData) {
+            throw new Error('Parámetros inválidos: se requiere ID del médico y datos del médico');
+        }
+
+        let doctorDataObj;
+        try {
+            doctorDataObj = JSON.parse(doctorData);
+        } catch (error) {
+            throw new Error('Los datos del médico deben estar en formato JSON válido');
+        }
+
+        const doctorBuffer = await ctx.stub.getState(`doctor_${doctorId}`);
+        if (!doctorBuffer || doctorBuffer.length === 0) {
+            throw new Error(`Médico con ID ${doctorId} no encontrado`);
+        }
+
+        const doctor = JSON.parse(doctorBuffer.toString());
+        doctor.data = doctorDataObj;
+        doctor.updatedAt = new Date().toISOString();
+        doctor.updatedBy = caller;
+
+        await ctx.stub.putState(`doctor_${doctorId}`, Buffer.from(JSON.stringify(doctor)));
+
+        const doctorEvent = {
+            type: 'updateDoctor',
+            doctorId: doctorId,
+            updatedBy: caller,
+            timestamp: doctor.updatedAt
+        };
+        await ctx.stub.setEvent('DoctorUpdated', Buffer.from(JSON.stringify(doctorEvent)));
+
+        return doctor;
+    }
+
+    /**
+     * Obtiene la información de un médico
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} doctorId - ID del médico
+     * @returns {Object} - Información del médico
+     */
+    async getDoctor(ctx, doctorId) {
+        // Validar parámetros
+        if (!doctorId) {
+            throw new Error('Parámetros inválidos: se requiere ID del médico');
+        }
+
+        const doctorBuffer = await ctx.stub.getState(`doctor_${doctorId}`);
+        if (!doctorBuffer || doctorBuffer.length === 0) {
+            throw new Error(`Médico con ID ${doctorId} no encontrado`);
+        }
+
+        return JSON.parse(doctorBuffer.toString());
+    }
+
+    /**
+     * Obtiene las citas de un médico
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} doctorId - ID del médico
+     * @returns {Array} - Lista de citas del médico
+     */
+    async getDoctorAppointments(ctx, doctorId) {
+        // Validar parámetros
+        if (!doctorId) {
+            throw new Error('Parámetros inválidos: se requiere ID del médico');
+        }
+
+        const query = {
+            selector: {
+                docType: 'appointment',
+                doctorId: doctorId
+            }
+        };
+
+        const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
+        const appointments = [];
+
+        let result = await iterator.next();
+        while (!result.done) {
+            appointments.push(JSON.parse(result.value.value.toString()));
+            result = await iterator.next();
+        }
+        await iterator.close();
+
+        return appointments;
+    }
+
+    /**
+     * Registra un diagnóstico médico asociado a una cita
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} diagnosisId - ID del diagnóstico
+     * @param {String} appointmentId - ID de la cita asociada
+     * @param {String} doctorId - ID del médico
+     * @param {String} diagnosisData - Datos del diagnóstico en formato JSON
+     * @returns {Object} - Información del diagnóstico registrado
+     */
+    async recordDiagnosis(ctx, diagnosisId, appointmentId, doctorId, diagnosisData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!diagnosisId || !appointmentId || !doctorId || !diagnosisData) {
+            throw new Error('Parámetros inválidos: se requiere diagnosisId, appointmentId, doctorId y diagnosisData');
+        }
+
+        let diagnosisDataObj;
+        try {
+            diagnosisDataObj = JSON.parse(diagnosisData);
+        } catch (error) {
+            throw new Error('Los datos del diagnóstico deben estar en formato JSON válido');
+        }
+
+        // Verificar que no exista
+        const existingBuffer = await ctx.stub.getState(`diagnosis_${diagnosisId}`);
+        if (existingBuffer && existingBuffer.length > 0) {
+            throw new Error(`El diagnóstico con ID ${diagnosisId} ya existe`);
+        }
+
+        // Verificar que la cita exista
+        const appointmentBuffer = await ctx.stub.getState(appointmentId);
+        if (!appointmentBuffer || appointmentBuffer.length === 0) {
+            throw new Error(`Cita con ID ${appointmentId} no encontrada`);
+        }
+        const appointment = JSON.parse(appointmentBuffer.toString());
+
+        const now = new Date();
+        const diagnosis = {
+            docType: 'diagnosis',
+            id: diagnosisId,
+            appointmentId: appointmentId,
+            patientId: appointment.patientId,
+            doctorId: doctorId,
+            data: diagnosisDataObj,
+            recordedAt: now.toISOString(),
+            recordedBy: caller
+        };
+
+        await ctx.stub.putState(`diagnosis_${diagnosisId}`, Buffer.from(JSON.stringify(diagnosis)));
+
+        const diagnosisEvent = {
+            type: 'recordDiagnosis',
+            diagnosisId: diagnosisId,
+            appointmentId: appointmentId,
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('DiagnosisRecorded', Buffer.from(JSON.stringify(diagnosisEvent)));
+
+        return diagnosis;
+    }
+
+    /**
+     * Registra un tratamiento médico asociado a un diagnóstico
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} treatmentId - ID del tratamiento
+     * @param {String} diagnosisId - ID del diagnóstico asociado
+     * @param {String} doctorId - ID del médico
+     * @param {String} treatmentData - Datos del tratamiento en formato JSON
+     * @returns {Object} - Información del tratamiento registrado
+     */
+    async recordTreatment(ctx, treatmentId, diagnosisId, doctorId, treatmentData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!treatmentId || !diagnosisId || !doctorId || !treatmentData) {
+            throw new Error('Parámetros inválidos: se requiere treatmentId, diagnosisId, doctorId y treatmentData');
+        }
+
+        let treatmentDataObj;
+        try {
+            treatmentDataObj = JSON.parse(treatmentData);
+        } catch (error) {
+            throw new Error('Los datos del tratamiento deben estar en formato JSON válido');
+        }
+
+        // Verificar que no exista
+        const existingBuffer = await ctx.stub.getState(`treatment_${treatmentId}`);
+        if (existingBuffer && existingBuffer.length > 0) {
+            throw new Error(`El tratamiento con ID ${treatmentId} ya existe`);
+        }
+
+        // Verificar que el diagnóstico exista
+        const diagnosisBuffer = await ctx.stub.getState(`diagnosis_${diagnosisId}`);
+        if (!diagnosisBuffer || diagnosisBuffer.length === 0) {
+            throw new Error(`Diagnóstico con ID ${diagnosisId} no encontrado`);
+        }
+        const diagnosis = JSON.parse(diagnosisBuffer.toString());
+
+        const now = new Date();
+        const treatment = {
+            docType: 'treatment',
+            id: treatmentId,
+            diagnosisId: diagnosisId,
+            appointmentId: diagnosis.appointmentId,
+            patientId: diagnosis.patientId,
+            doctorId: doctorId,
+            data: treatmentDataObj,
+            recordedAt: now.toISOString(),
+            recordedBy: caller
+        };
+
+        await ctx.stub.putState(`treatment_${treatmentId}`, Buffer.from(JSON.stringify(treatment)));
+
+        const treatmentEvent = {
+            type: 'recordTreatment',
+            treatmentId: treatmentId,
+            diagnosisId: diagnosisId,
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('TreatmentRecorded', Buffer.from(JSON.stringify(treatmentEvent)));
+
+        return treatment;
+    }
+
+    /**
+     * Registra un resultado de prueba médica
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} testResultId - ID del resultado
+     * @param {String} patientId - ID del paciente
+     * @param {String} doctorId - ID del médico
+     * @param {String} testResultData - Datos del resultado en formato JSON
+     * @returns {Object} - Información del resultado registrado
+     */
+    async recordTestResult(ctx, testResultId, patientId, doctorId, testResultData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!testResultId || !patientId || !doctorId || !testResultData) {
+            throw new Error('Parámetros inválidos: se requiere testResultId, patientId, doctorId y testResultData');
+        }
+
+        let testResultDataObj;
+        try {
+            testResultDataObj = JSON.parse(testResultData);
+        } catch (error) {
+            throw new Error('Los datos del resultado deben estar en formato JSON válido');
+        }
+
+        // Verificar que no exista
+        const existingBuffer = await ctx.stub.getState(`testresult_${testResultId}`);
+        if (existingBuffer && existingBuffer.length > 0) {
+            throw new Error(`El resultado con ID ${testResultId} ya existe`);
+        }
+
+        // Verificar que el paciente exista
+        const patientBuffer = await ctx.stub.getState(`patient_${patientId}`);
+        if (!patientBuffer || patientBuffer.length === 0) {
+            throw new Error(`Paciente con ID ${patientId} no encontrado`);
+        }
+
+        const now = new Date();
+        const testResult = {
+            docType: 'testResult',
+            id: testResultId,
+            patientId: patientId,
+            doctorId: doctorId,
+            data: testResultDataObj,
+            recordedAt: now.toISOString(),
+            recordedBy: caller
+        };
+
+        await ctx.stub.putState(`testresult_${testResultId}`, Buffer.from(JSON.stringify(testResult)));
+
+        const testResultEvent = {
+            type: 'recordTestResult',
+            testResultId: testResultId,
+            patientId: patientId,
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('TestResultRecorded', Buffer.from(JSON.stringify(testResultEvent)));
+
+        return testResult;
+    }
+
+    /**
+     * Obtiene el historial clínico completo de un paciente
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} patientId - ID del paciente
+     * @returns {Object} - Historial: paciente, citas, prescripciones, registros, diagnósticos y pruebas
+     */
+    async getPatientHistory(ctx, patientId) {
+        // Validar parámetros
+        if (!patientId) {
+            throw new Error('Parámetros inválidos: se requiere ID del paciente');
+        }
+
+        const patientBuffer = await ctx.stub.getState(`patient_${patientId}`);
+        if (!patientBuffer || patientBuffer.length === 0) {
+            throw new Error(`Paciente con ID ${patientId} no encontrado`);
+        }
+        const patient = JSON.parse(patientBuffer.toString());
+
+        // Recolectar documentos asociados por tipo
+        const history = {
+            patient: patient,
+            appointments: [],
+            prescriptions: [],
+            medicalRecords: [],
+            diagnoses: [],
+            testResults: []
+        };
+
+        for (const appointmentId of patient.appointments || []) {
+            const buf = await ctx.stub.getState(appointmentId);
+            if (buf && buf.length > 0) {
+                history.appointments.push(JSON.parse(buf.toString()));
+            }
+        }
+
+        for (const prescriptionId of patient.prescriptions || []) {
+            const buf = await ctx.stub.getState(prescriptionId);
+            if (buf && buf.length > 0) {
+                history.prescriptions.push(JSON.parse(buf.toString()));
+            }
+        }
+
+        for (const recordId of patient.medicalRecords || []) {
+            const buf = await ctx.stub.getState(recordId);
+            if (buf && buf.length > 0) {
+                history.medicalRecords.push(JSON.parse(buf.toString()));
+            }
+        }
+
+        for (const docType of ['diagnosis', 'testResult']) {
+            const query = { selector: { docType: docType, patientId: patientId } };
+            const iterator = await ctx.stub.getQueryResult(JSON.stringify(query));
+            let result = await iterator.next();
+            while (!result.done) {
+                const doc = JSON.parse(result.value.value.toString());
+                if (docType === 'diagnosis') {
+                    history.diagnoses.push(doc);
+                } else {
+                    history.testResults.push(doc);
+                }
+                result = await iterator.next();
+            }
+            await iterator.close();
+        }
+
+        return history;
+    }
+
+    /**
+     * Registra la calificación de una cita por parte del paciente
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} appointmentId - ID de la cita
+     * @param {String} patientId - ID del paciente que califica
+     * @param {String} ratingData - Datos de la calificación en formato JSON {rating, comment}
+     * @returns {Object} - Información de la cita actualizada
+     */
+    async rateAppointment(ctx, appointmentId, patientId, ratingData) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!appointmentId || !patientId || !ratingData) {
+            throw new Error('Parámetros inválidos: se requiere appointmentId, patientId y ratingData');
+        }
+
+        let ratingDataObj;
+        try {
+            ratingDataObj = JSON.parse(ratingData);
+        } catch (error) {
+            throw new Error('Los datos de la calificación deben estar en formato JSON válido');
+        }
+
+        if (ratingDataObj.rating === undefined || ratingDataObj.rating === null) {
+            throw new Error('La calificación debe incluir un rating');
+        }
+
+        // Obtener cita
+        const appointmentBuffer = await ctx.stub.getState(appointmentId);
+        if (!appointmentBuffer || appointmentBuffer.length === 0) {
+            throw new Error(`Cita con ID ${appointmentId} no encontrada`);
+        }
+
+        const appointment = JSON.parse(appointmentBuffer.toString());
+
+        // Verificar que la cita pertenezca al paciente
+        if (appointment.patientId !== patientId) {
+            throw new Error('La cita no pertenece al paciente indicado');
+        }
+
+        appointment.rating = {
+            value: ratingDataObj.rating,
+            comment: ratingDataObj.comment || '',
+            ratedAt: new Date().toISOString(),
+            ratedBy: caller
+        };
+        appointment.updatedAt = new Date().toISOString();
+
+        await ctx.stub.putState(appointmentId, Buffer.from(JSON.stringify(appointment)));
+
+        const ratingEvent = {
+            type: 'rateAppointment',
+            appointmentId: appointmentId,
+            patientId: patientId,
+            rating: ratingDataObj.rating,
+            timestamp: appointment.updatedAt
+        };
+        await ctx.stub.setEvent('AppointmentRated', Buffer.from(JSON.stringify(ratingEvent)));
+
+        return appointment;
     }
 }
 
