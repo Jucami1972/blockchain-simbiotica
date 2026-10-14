@@ -21,9 +21,16 @@ export class BlockchainService {
     this.chaincodeIds = this.configService.get<Record<string, string>>('blockchain.chaincodes');
     
     try {
-      // Cargar el perfil de conexión
+      // Cargar el perfil de conexión (opcional: la red puede configurarse despues)
       const networkProfilePath = this.configService.get<string>('blockchain.networkProfile');
-      this.connectionProfile = JSON.parse(fs.readFileSync(networkProfilePath, 'utf8'));
+      if (networkProfilePath && fs.existsSync(networkProfilePath)) {
+        this.connectionProfile = JSON.parse(fs.readFileSync(networkProfilePath, 'utf8'));
+      } else {
+        this.logger.warn(
+          `Connection profile not found at '${networkProfilePath}'. ` +
+          `La API arranca sin blockchain; configure NETWORK_PROFILE para habilitarla.`
+        );
+      }
       
       // Inicializar el wallet
       const walletPath = this.configService.get<string>('blockchain.wallet.path');
@@ -43,6 +50,11 @@ export class BlockchainService {
    */
   async connect(userId: string): Promise<void> {
     try {
+      if (!this.connectionProfile) {
+        throw new Error(
+          'Perfil de conexion blockchain no cargado. Defina NETWORK_PROFILE apuntando a un connection-profile.json valido.'
+        );
+      }
       // Crear una nueva instancia de gateway
       this.gateway = new Gateway();
       
@@ -305,7 +317,7 @@ export class BlockchainService {
       const peers = this.network.getChannel().getEndorsers();
       const peersInfo = peers.map(peer => ({
         name: peer.name,
-        url: peer.endpoint.url,
+        url: (peer.endpoint as any)?.url || peer.name,
         mspid: peer.mspid,
       }));
       

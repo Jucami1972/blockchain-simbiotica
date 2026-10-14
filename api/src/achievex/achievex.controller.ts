@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, Put, Param, UseGuards, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Param, Query, UseGuards } from '@nestjs/common';
 import { AchievexService } from './achievex.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -7,234 +7,115 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 
 @ApiTags('achievex')
 @Controller('achievex')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class AchievexController {
   constructor(private readonly achievexService: AchievexService) {}
 
-  @Post('achievements')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post('categories')
+  @UseGuards(RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Crear una categoria de logros' })
+  @ApiResponse({ status: 201, description: 'Categoria creada correctamente' })
+  async createCategory(@Body() body: { categoryId: string; categoryData: string }) {
+    return this.achievexService.createCategory(body.categoryId, body.categoryData);
+  }
+
+  @Get('categories')
+  @ApiOperation({ summary: 'Listar todas las categorias' })
+  @ApiResponse({ status: 200, description: 'Categorias obtenidas correctamente' })
+  async getAllCategories() {
+    return this.achievexService.getAllCategories();
+  }
+
+  @Get('categories/:categoryId')
+  @ApiOperation({ summary: 'Obtener una categoria' })
+  @ApiResponse({ status: 200, description: 'Categoria obtenida correctamente' })
+  async getCategory(@Param('categoryId') categoryId: string) {
+    return this.achievexService.getCategory(categoryId);
+  }
+
+  @Get('categories/:categoryId/achievements')
+  @ApiOperation({ summary: 'Listar los logros de una categoria' })
+  @ApiResponse({ status: 200, description: 'Logros obtenidos correctamente' })
+  async getCategoryAchievements(@Param('categoryId') categoryId: string) {
+    return this.achievexService.getCategoryAchievements(categoryId);
+  }
+
+  @Post('achievements')
+  @UseGuards(RolesGuard)
+  @Roles('admin')
   @ApiOperation({ summary: 'Crear un nuevo logro' })
   @ApiResponse({ status: 201, description: 'Logro creado correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async createAchievement(@Body() body: { achievementId: string; creatorId: string; achievementData: string }) {
-    return this.achievexService.createAchievement(body.achievementId, body.creatorId, body.achievementData);
+  async createAchievement(
+    @Body() body: { achievementId: string; categoryId: string; achievementData: string },
+  ) {
+    return this.achievexService.createAchievement(
+      body.achievementId,
+      body.categoryId,
+      body.achievementData,
+    );
   }
 
   @Get('achievements/:achievementId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener información de un logro' })
-  @ApiResponse({ status: 200, description: 'Información del logro obtenida correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
+  @ApiOperation({ summary: 'Obtener informacion de un logro' })
+  @ApiResponse({ status: 200, description: 'Informacion del logro obtenida correctamente' })
   async getAchievement(@Param('achievementId') achievementId: string) {
     return this.achievexService.getAchievement(achievementId);
   }
 
   @Put('achievements/:achievementId')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @UseGuards(RolesGuard)
   @Roles('admin')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Actualizar un logro existente' })
   @ApiResponse({ status: 200, description: 'Logro actualizado correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
   async updateAchievement(
     @Param('achievementId') achievementId: string,
-    @Body() body: { creatorId: string; achievementData: string },
+    @Body() body: { achievementData: string },
   ) {
-    return this.achievexService.updateAchievement(achievementId, body.creatorId, body.achievementData);
+    return this.achievexService.updateAchievement(achievementId, body.achievementData);
   }
 
-  @Post('achievements/:achievementId/grant')
-  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post('achievements/:achievementId/award')
+  @UseGuards(RolesGuard)
   @Roles('admin', 'moderator')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Otorgar un logro a un usuario' })
   @ApiResponse({ status: 200, description: 'Logro otorgado correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async grantAchievement(
+  async awardAchievement(
     @Param('achievementId') achievementId: string,
-    @Body() body: { userId: string; granterId: string; grantData: string },
+    @Body() body: { userId: string; evidence?: string },
   ) {
-    return this.achievexService.grantAchievement(
-      achievementId,
-      body.userId,
-      body.granterId,
-      body.grantData,
-    );
-  }
-
-  @Post('achievements/:achievementId/revoke')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Revocar un logro otorgado a un usuario' })
-  @ApiResponse({ status: 200, description: 'Logro revocado correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async revokeAchievement(
-    @Param('achievementId') achievementId: string,
-    @Body() body: { userId: string; revokerId: string; reason: string },
-  ) {
-    return this.achievexService.revokeAchievement(
-      achievementId,
-      body.userId,
-      body.revokerId,
-      body.reason,
-    );
+    return this.achievexService.awardAchievement(body.userId, achievementId, body.evidence);
   }
 
   @Get('users/:userId/achievements')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Obtener todos los logros de un usuario' })
   @ApiResponse({ status: 200, description: 'Logros obtenidos correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
   async getUserAchievements(@Param('userId') userId: string) {
     return this.achievexService.getUserAchievements(userId);
   }
 
-  @Post('badges')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Crear una nueva insignia' })
-  @ApiResponse({ status: 201, description: 'Insignia creada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async createBadge(@Body() body: { badgeId: string; creatorId: string; badgeData: string }) {
-    return this.achievexService.createBadge(body.badgeId, body.creatorId, body.badgeData);
-  }
-
-  @Post('badges/:badgeId/grant')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'moderator')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Otorgar una insignia a un usuario' })
-  @ApiResponse({ status: 200, description: 'Insignia otorgada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async grantBadge(
-    @Param('badgeId') badgeId: string,
-    @Body() body: { userId: string; granterId: string; grantData: string },
-  ) {
-    return this.achievexService.grantBadge(
-      badgeId,
-      body.userId,
-      body.granterId,
-      body.grantData,
-    );
-  }
-
-  @Get('users/:userId/badges')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener todas las insignias de un usuario' })
-  @ApiResponse({ status: 200, description: 'Insignias obtenidas correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getUserBadges(@Param('userId') userId: string) {
-    return this.achievexService.getUserBadges(userId);
-  }
-
-  @Post('rewards')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Crear una nueva recompensa' })
-  @ApiResponse({ status: 201, description: 'Recompensa creada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async createReward(@Body() body: { rewardId: string; creatorId: string; rewardData: string }) {
-    return this.achievexService.createReward(body.rewardId, body.creatorId, body.rewardData);
-  }
-
-  @Post('rewards/:rewardId/grant')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'moderator')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Otorgar una recompensa a un usuario' })
-  @ApiResponse({ status: 200, description: 'Recompensa otorgada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async grantReward(
-    @Param('rewardId') rewardId: string,
-    @Body() body: { userId: string; granterId: string; grantData: string },
-  ) {
-    return this.achievexService.grantReward(
-      rewardId,
-      body.userId,
-      body.granterId,
-      body.grantData,
-    );
-  }
-
-  @Get('users/:userId/rewards')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener todas las recompensas de un usuario' })
-  @ApiResponse({ status: 200, description: 'Recompensas obtenidas correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getUserRewards(@Param('userId') userId: string) {
-    return this.achievexService.getUserRewards(userId);
-  }
-
-  @Post('leaderboard/update')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Actualizar la tabla de clasificación' })
-  @ApiResponse({ status: 200, description: 'Tabla de clasificación actualizada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async updateLeaderboard() {
-    return this.achievexService.updateLeaderboard();
-  }
-
-  @Get('leaderboard')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener la tabla de clasificación' })
-  @ApiResponse({ status: 200, description: 'Tabla de clasificación obtenida correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getLeaderboard(@Query('limit') limit?: number) {
-    return this.achievexService.getLeaderboard(limit);
-  }
-
-  @Post('users/:userId/points')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin', 'moderator')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Añadir puntos a un usuario' })
-  @ApiResponse({ status: 200, description: 'Puntos añadidos correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async addPoints(
+  @Get('users/:userId/achievements/:achievementId')
+  @ApiOperation({ summary: 'Verificar si un usuario tiene un logro' })
+  @ApiResponse({ status: 200, description: 'Verificacion completada' })
+  async hasAchievement(
     @Param('userId') userId: string,
-    @Body() body: { points: number; reason: string },
+    @Param('achievementId') achievementId: string,
   ) {
-    return this.achievexService.addPoints(userId, body.points, body.reason);
+    return this.achievexService.hasAchievement(userId, achievementId);
   }
 
-  @Get('users/:userId/points')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener los puntos de un usuario' })
-  @ApiResponse({ status: 200, description: 'Puntos obtenidos correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getUserPoints(@Param('userId') userId: string) {
-    return this.achievexService.getUserPoints(userId);
+  @Get('users/:userId/profile')
+  @ApiOperation({ summary: 'Obtener el perfil de logros de un usuario' })
+  @ApiResponse({ status: 200, description: 'Perfil obtenido correctamente' })
+  async getUserProfile(@Param('userId') userId: string) {
+    return this.achievexService.getUserProfile(userId);
   }
 
-  @Get('users/:userId/points/history')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener el historial de puntos de un usuario' })
-  @ApiResponse({ status: 200, description: 'Historial de puntos obtenido correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getUserPointsHistory(@Param('userId') userId: string) {
-    return this.achievexService.getUserPointsHistory(userId);
+  @Get('stats')
+  @ApiOperation({ summary: 'Obtener estadisticas de logros' })
+  @ApiResponse({ status: 200, description: 'Estadisticas obtenidas correctamente' })
+  async getAchievementStats() {
+    return this.achievexService.getAchievementStats();
   }
 }

@@ -4,3 +4,7 @@ fabric-network/fabric-samples/
 wallet/
 ccv.tar.gz
 .env
+
+# build outputs
+dist/
+*.tsbuildinfo

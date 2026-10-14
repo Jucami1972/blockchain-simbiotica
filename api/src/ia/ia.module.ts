@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { IAService } from './ia.service';
-import { IAController } from './ia.controller';
+import { IaService } from './ia.service';
+import { IaController } from './ia.controller';
 import { BlockchainModule } from '../blockchain/blockchain.module';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from '../logger/logger.module';
@@ -11,8 +11,8 @@ import { LoggerModule } from '../logger/logger.module';
     ConfigModule,
     LoggerModule
   ],
-  controllers: [IAController],
-  providers: [IAService],
-  exports: [IAService]
+  controllers: [IaController],
+  providers: [IaService],
+  exports: [IaService]
 })
 export class IAModule {}

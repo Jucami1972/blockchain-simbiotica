@@ -142,7 +142,8 @@ export class AuthService {
       this.logger.log('Verificando token JWT');
       
       // Verificar token
-      const decoded = jwt.verify(token, this.configService.get<string>('jwt.secret'));
+      const jwtSecret: string = (this.configService.get<string>('jwt.secret') as string) || '';
+      const decoded: any = jwt.verify(token, jwtSecret);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
@@ -317,11 +318,9 @@ export class AuthService {
       role: user.role
     };
     
-    return jwt.sign(
-      payload,
-      this.configService.get<string>('jwt.secret'),
-      { expiresIn: this.configService.get<string>('jwt.expiresIn') || '1d' }
-    );
+    const secret: string = (this.configService.get<string>('jwt.secret') as string) || '';
+    const expiresIn: any = this.configService.get<string>('jwt.expiresIn') || '1d';
+    return jwt.sign(payload, secret, { expiresIn });
   }
 
   /**

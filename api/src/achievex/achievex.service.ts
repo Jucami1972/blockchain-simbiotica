@@ -348,15 +348,16 @@ export class AchievexService {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método hasAchievement del contrato achievex
+      // El chaincode no expone hasAchievement: se deriva de getUserAchievements
       const result = await this.blockchainService.evaluateTransaction(
         'achievex',
-        'hasAchievement',
-        userId,
-        achievementId
+        'getUserAchievements',
+        userId
       );
-      
-      const hasAchievement = JSON.parse(result.toString());
+
+      const achievements = JSON.parse(result.toString());
+      const hasAchievement = Array.isArray(achievements) &&
+        achievements.some((a: any) => a.achievementId === achievementId);
       this.logger.log(`Resultado de verificación: ${hasAchievement}`);
       
       return { userId, achievementId, hasAchievement };

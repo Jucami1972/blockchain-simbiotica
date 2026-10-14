@@ -327,10 +327,10 @@ export class ChatService {
       }
       
       // Llamar al método getUserChannels del contrato chat
+      // El chaincode resuelve el usuario por la identidad del llamante
       const result = await this.blockchainService.evaluateTransaction(
         'chat',
-        'getUserChannels',
-        userId
+        'getUserChannels'
       );
       
       const channels = JSON.parse(result.toString());

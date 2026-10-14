@@ -9,14 +9,16 @@ export default () => ({
       enabled: process.env.CORS_ENABLED === 'true',
       origin: process.env.CORS_ORIGIN || '*',
     },
-    jwt: {
-      secret: process.env.JWT_SECRET || 'blockchain-simbiotica-secret-key',
-      expiresIn: process.env.JWT_EXPIRES_IN || '24h',
-    },
     rateLimit: {
       windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutos
       max: parseInt(process.env.RATE_LIMIT_MAX, 10) || 100, // límite de 100 solicitudes por ventana
     },
+  },
+
+  // JWT (nivel superior: asi lo leen auth.service, auth.module y jwt.strategy)
+  jwt: {
+    secret: process.env.JWT_SECRET || 'blockchain-simbiotica-secret-key',
+    expiresIn: process.env.JWT_EXPIRES_IN || '24h',
   },
   
   // Configuración de la base de datos

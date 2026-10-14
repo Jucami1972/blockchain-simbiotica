@@ -164,7 +164,7 @@ export class DaoService {
       // Llamar al método getPropuesta del contrato dao
       const result = await this.blockchainService.evaluateTransaction(
         'dao',
-        'getPropuesta',
+        'obtenerPropuesta',
         propuestaId
       );
       
@@ -192,12 +192,17 @@ export class DaoService {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método getPropuestas del contrato dao
-      const result = await this.blockchainService.evaluateTransaction(
-        'dao',
-        'getPropuestas',
-        estado || ''
-      );
+      // El chaincode expone obtenerPropuestasPorEstado(estado) y obtenerPropuestasActivas()
+      const result = estado
+        ? await this.blockchainService.evaluateTransaction(
+            'dao',
+            'obtenerPropuestasPorEstado',
+            estado
+          )
+        : await this.blockchainService.evaluateTransaction(
+            'dao',
+            'obtenerPropuestasActivas'
+          );
       
       const propuestas = JSON.parse(result.toString());
       this.logger.log(`Propuestas obtenidas: ${propuestas.length} propuestas`);
@@ -226,7 +231,7 @@ export class DaoService {
       // Llamar al método getVotosPropuesta del contrato dao
       const result = await this.blockchainService.evaluateTransaction(
         'dao',
-        'getVotosPropuesta',
+        'obtenerVotosPropuesta',
         propuestaId
       );
       
@@ -255,17 +260,19 @@ export class DaoService {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método getVotoUsuario del contrato dao
+      // Se deriva de obtenerVotosPropuesta filtrando por votante
       const result = await this.blockchainService.evaluateTransaction(
         'dao',
-        'getVotoUsuario',
-        propuestaId,
-        userId
+        'obtenerVotosPropuesta',
+        propuestaId
       );
       
-      const voto = JSON.parse(result.toString());
+      const votos = JSON.parse(result.toString());
+      const voto = Array.isArray(votos)
+        ? votos.find((v: any) => v.votante === userId) || null
+        : null;
       this.logger.log(`Voto obtenido: ${JSON.stringify(voto)}`);
-      
+
       return voto;
     } catch (error) {
       this.logger.error(`Error al obtener voto del usuario: ${error.message}`);
@@ -287,16 +294,17 @@ export class DaoService {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método getPropuestasUsuario del contrato dao
+      // Se deriva de obtenerHistorialMiembro (propuestas creadas por el miembro)
       const result = await this.blockchainService.evaluateTransaction(
         'dao',
-        'getPropuestasUsuario',
+        'obtenerHistorialMiembro',
         userId
       );
-      
-      const propuestas = JSON.parse(result.toString());
+
+      const historial = JSON.parse(result.toString());
+      const propuestas = historial.propuestasCreadas || [];
       this.logger.log(`Propuestas obtenidas: ${propuestas.length} propuestas`);
-      
+
       return propuestas;
     } catch (error) {
       this.logger.error(`Error al obtener propuestas del usuario: ${error.message}`);
@@ -320,7 +328,7 @@ export class DaoService {
       // Llamar al método getConfiguracionDAO del contrato dao
       const result = await this.blockchainService.evaluateTransaction(
         'dao',
-        'getConfiguracionDAO'
+        'obtenerConfiguracion'
       );
       
       const configuracion = JSON.parse(result.toString());
@@ -350,7 +358,7 @@ export class DaoService {
       // Llamar al método actualizarConfiguracionDAO del contrato dao
       const result = await this.blockchainService.submitTransaction(
         'dao',
-        'actualizarConfiguracionDAO',
+        'actualizarConfiguracion',
         configuracionData
       );
       
