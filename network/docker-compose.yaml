@@ -137,7 +137,7 @@ services:
       - type: volume
         source: orderer0.blockchain-simbiotica.com
         target: /var/hyperledger/production/orderer
-      - ../../network/channel-artifacts/genesis.block:/var/hyperledger/orderer/genesis.block
+      - ./system-genesis-block/genesis.block:/var/hyperledger/orderer/genesis.block
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer0.blockchain-simbiotica.com/msp:/var/hyperledger/orderer/msp
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer0.blockchain-simbiotica.com/tls:/var/hyperledger/orderer/tls
     networks:
@@ -169,7 +169,7 @@ services:
       - "7051:7050"
     volumes:
       - orderer1.blockchain-simbiotica.com:/var/hyperledger/production/orderer
-      - ../../network/channel-artifacts/genesis.block:/var/hyperledger/orderer/genesis.block
+      - ./system-genesis-block/genesis.block:/var/hyperledger/orderer/genesis.block
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer1.blockchain-simbiotica.com/msp:/var/hyperledger/orderer/msp
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer1.blockchain-simbiotica.com/tls:/var/hyperledger/orderer/tls
     networks:
@@ -201,7 +201,7 @@ services:
       - "7052:7050"
     volumes:
       - "orderer2.blockchain-simbiotica.com:/var/hyperledger/production/orderer"
-      - ../../network/channel-artifacts/genesis.block:/var/hyperledger/orderer/genesis.block
+      - ./system-genesis-block/genesis.block:/var/hyperledger/orderer/genesis.block
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer2.blockchain-simbiotica.com/msp:/var/hyperledger/orderer/msp
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer2.blockchain-simbiotica.com/tls:/var/hyperledger/orderer/tls
     networks:
@@ -233,7 +233,7 @@ services:
       - "7053:7050"
     volumes:
       - "orderer3.blockchain-simbiotica.com:/var/hyperledger/production/orderer"
-      - ../../network/channel-artifacts/genesis.block:/var/hyperledger/orderer/genesis.block
+      - ./system-genesis-block/genesis.block:/var/hyperledger/orderer/genesis.block
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer3.blockchain-simbiotica.com/msp:/var/hyperledger/orderer/msp
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer3.blockchain-simbiotica.com/tls:/var/hyperledger/orderer/tls
     networks:
@@ -265,7 +265,7 @@ services:
       - "7055:7050"
     volumes:
       - "orderer4.blockchain-simbiotica.com:/var/hyperledger/production/orderer"
-      - ../../network/channel-artifacts/genesis.block:/var/hyperledger/orderer/genesis.block
+      - ./system-genesis-block/genesis.block:/var/hyperledger/orderer/genesis.block
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer4.blockchain-simbiotica.com/msp:/var/hyperledger/orderer/msp
       - ./crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer4.blockchain-simbiotica.com/tls:/var/hyperledger/orderer/tls
     networks:
