@@ -19,10 +19,10 @@ Organizations:
                 Rule: "OR('OrdererMSP.admin')"
         OrdererEndpoints:
             - orderer0.blockchain-simbiotica.com:7050
-            - orderer1.blockchain-simbiotica.com:7051
-            - orderer2.blockchain-simbiotica.com:7052
-            - orderer3.blockchain-simbiotica.com:7053
-            - orderer4.blockchain-simbiotica.com:7055
+            - orderer1.blockchain-simbiotica.com:7050
+            - orderer2.blockchain-simbiotica.com:7050
+            - orderer3.blockchain-simbiotica.com:7050
+            - orderer4.blockchain-simbiotica.com:7050
 
     - &Org1
         Name: Org1MSP
@@ -129,10 +129,10 @@ Orderer: &OrdererDefaults
     OrdererType: etcdraft
     Addresses:
         - orderer0.blockchain-simbiotica.com:7050
-        - orderer1.blockchain-simbiotica.com:7051
-        - orderer2.blockchain-simbiotica.com:7052
-        - orderer3.blockchain-simbiotica.com:7053
-        - orderer4.blockchain-simbiotica.com:7055
+        - orderer1.blockchain-simbiotica.com:7050
+        - orderer2.blockchain-simbiotica.com:7050
+        - orderer3.blockchain-simbiotica.com:7050
+        - orderer4.blockchain-simbiotica.com:7050
     BatchTimeout: 2s
     BatchSize:
         MaxMessageCount: 10
@@ -145,19 +145,19 @@ Orderer: &OrdererDefaults
               ClientTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer0.blockchain-simbiotica.com/tls/server.crt
               ServerTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer0.blockchain-simbiotica.com/tls/server.crt
             - Host: orderer1.blockchain-simbiotica.com
-              Port: 7051
+              Port: 7050
               ClientTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer1.blockchain-simbiotica.com/tls/server.crt
               ServerTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer1.blockchain-simbiotica.com/tls/server.crt
             - Host: orderer2.blockchain-simbiotica.com
-              Port: 7052
+              Port: 7050
               ClientTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer2.blockchain-simbiotica.com/tls/server.crt
               ServerTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer2.blockchain-simbiotica.com/tls/server.crt
             - Host: orderer3.blockchain-simbiotica.com
-              Port: 7053
+              Port: 7050
               ClientTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer3.blockchain-simbiotica.com/tls/server.crt
               ServerTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer3.blockchain-simbiotica.com/tls/server.crt
             - Host: orderer4.blockchain-simbiotica.com
-              Port: 7055
+              Port: 7050
               ClientTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer4.blockchain-simbiotica.com/tls/server.crt
               ServerTLSCert: crypto-config/ordererOrganizations/blockchain-simbiotica.com/orderers/orderer4.blockchain-simbiotica.com/tls/server.crt
         Options:
