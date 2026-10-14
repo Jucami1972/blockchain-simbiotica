@@ -162,7 +162,7 @@ export class IaService {
       // Llamar al método getModelo del contrato ia
       const result = await this.blockchainService.evaluateTransaction(
         'ia',
-        'getModelo',
+        'obtenerModelo',
         modeloId
       );
       
@@ -193,7 +193,7 @@ export class IaService {
       // Llamar al método getSolicitud del contrato ia
       const result = await this.blockchainService.evaluateTransaction(
         'ia',
-        'getSolicitud',
+        'obtenerSolicitud',
         solicitudId
       );
       
@@ -224,7 +224,7 @@ export class IaService {
       // Llamar al método getRespuesta del contrato ia
       const result = await this.blockchainService.evaluateTransaction(
         'ia',
-        'getRespuesta',
+        'obtenerRespuesta',
         respuestaId
       );
       
@@ -252,11 +252,10 @@ export class IaService {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método getSolicitudesUsuario del contrato ia
+      // El chaincode resuelve el usuario por la identidad del llamante (no recibe userId)
       const result = await this.blockchainService.evaluateTransaction(
         'ia',
-        'getSolicitudesUsuario',
-        userId
+        'obtenerSolicitudesUsuario'
       );
       
       const solicitudes = JSON.parse(result.toString());
@@ -316,7 +315,7 @@ export class IaService {
       // Llamar al método getEstadisticasUso del contrato ia
       const result = await this.blockchainService.evaluateTransaction(
         'ia',
-        'getEstadisticasUso'
+        'obtenerEstadisticas'
       );
       
       const estadisticas = JSON.parse(result.toString());

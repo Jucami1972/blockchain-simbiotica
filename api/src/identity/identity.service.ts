@@ -311,9 +311,9 @@ export class IdentityService {
    * @param reason Razón de la revocación
    * @returns Información de la revocación
    */
-  async revokeCredential(credentialId: string, revokerId: string, reason: string): Promise<any> {
+  async revokeCredential(credentialId: string, reason: string): Promise<any> {
     try {
-      this.logger.log(`Revocando credencial ${credentialId} por ${revokerId}: ${reason}`);
+      this.logger.log(`Revocando credencial ${credentialId}: ${reason}`);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
@@ -321,11 +321,11 @@ export class IdentityService {
       }
       
       // Llamar al método revokeCredential del contrato identity
+      // El chaincode registra al llamante como revocador
       const result = await this.blockchainService.submitTransaction(
         'identity',
         'revokeCredential',
         credentialId,
-        revokerId,
         reason
       );
       
@@ -353,10 +353,10 @@ export class IdentityService {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método getUserCredentials del contrato identity
+      // getSubjectCredentials(userId): misma semantica en el chaincode
       const result = await this.blockchainService.evaluateTransaction(
         'identity',
-        'getUserCredentials',
+        'getSubjectCredentials',
         userId
       );
       

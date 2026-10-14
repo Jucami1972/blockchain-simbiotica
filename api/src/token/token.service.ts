@@ -80,20 +80,19 @@ export class TokenService {
    * @param amount Cantidad de tokens a transferir
    * @returns Resultado de la transacción
    */
-  async transfer(from: string, to: string, amount: string): Promise<any> {
+  async transfer(to: string, amount: string): Promise<any> {
     try {
-      this.logger.log(`Transfiriendo ${amount} tokens de ${from} a ${to}`);
+      this.logger.log(`Transfiriendo ${amount} tokens a ${to}`);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método transfer del contrato token
+      // El chaincode usa la identidad del llamante como remitente
       const result = await this.blockchainService.submitTransaction(
         'token',
         'transfer',
-        from,
         to,
         amount
       );
@@ -115,9 +114,9 @@ export class TokenService {
    * @param amount Cantidad de tokens a aprobar
    * @returns Resultado de la transacción
    */
-  async approve(owner: string, spender: string, amount: string): Promise<any> {
+  async approve(spender: string, amount: string): Promise<any> {
     try {
-      this.logger.log(`Aprobando ${amount} tokens para que ${spender} gaste en nombre de ${owner}`);
+      this.logger.log(`Aprobando ${amount} tokens para ${spender}`);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
@@ -125,10 +124,10 @@ export class TokenService {
       }
       
       // Llamar al método approve del contrato token
+      // El chaincode usa la identidad del llamante como propietario
       const result = await this.blockchainService.submitTransaction(
         'token',
         'approve',
-        owner,
         spender,
         amount
       );
@@ -151,9 +150,9 @@ export class TokenService {
    * @param amount Cantidad de tokens a transferir
    * @returns Resultado de la transacción
    */
-  async transferFrom(spender: string, from: string, to: string, amount: string): Promise<any> {
+  async transferFrom(from: string, to: string, amount: string): Promise<any> {
     try {
-      this.logger.log(`${spender} transfiriendo ${amount} tokens de ${from} a ${to}`);
+      this.logger.log(`Transfiriendo ${amount} tokens de ${from} a ${to} (transferFrom)`);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
@@ -161,10 +160,10 @@ export class TokenService {
       }
       
       // Llamar al método transferFrom del contrato token
+      // El chaincode usa la identidad del llamante como spender autorizado
       const result = await this.blockchainService.submitTransaction(
         'token',
         'transferFrom',
-        spender,
         from,
         to,
         amount
@@ -258,9 +257,9 @@ export class TokenService {
    * @param amount Cantidad de tokens a quemar
    * @returns Resultado de la transacción
    */
-  async burn(from: string, amount: string): Promise<any> {
+  async burn(amount: string): Promise<any> {
     try {
-      this.logger.log(`Quemando ${amount} tokens de ${from}`);
+      this.logger.log(`Quemando ${amount} tokens`);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
@@ -274,10 +273,10 @@ export class TokenService {
       }
       
       // Llamar al método burn del contrato token
+      // El chaincode quema tokens del llamante
       const result = await this.blockchainService.submitTransaction(
         'token',
         'burn',
-        from,
         amount
       );
       

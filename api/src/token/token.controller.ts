@@ -36,8 +36,8 @@ export class TokenController {
   @ApiOperation({ summary: 'Transferir tokens de una dirección a otra' })
   @ApiResponse({ status: 200, description: 'Transferencia realizada correctamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  async transfer(@Body() body: { from: string; to: string; amount: string }) {
-    return this.tokenService.transfer(body.from, body.to, body.amount);
+  async transfer(@Body() body: { to: string; amount: string }) {
+    return this.tokenService.transfer(body.to, body.amount);
   }
 
   @Post('approve')
@@ -46,8 +46,8 @@ export class TokenController {
   @ApiOperation({ summary: 'Aprobar a una dirección para gastar tokens en nombre del propietario' })
   @ApiResponse({ status: 200, description: 'Aprobación realizada correctamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  async approve(@Body() body: { owner: string; spender: string; amount: string }) {
-    return this.tokenService.approve(body.owner, body.spender, body.amount);
+  async approve(@Body() body: { spender: string; amount: string }) {
+    return this.tokenService.approve(body.spender, body.amount);
   }
 
   @Post('transfer-from')
@@ -56,8 +56,8 @@ export class TokenController {
   @ApiOperation({ summary: 'Transferir tokens de una dirección a otra en nombre del propietario' })
   @ApiResponse({ status: 200, description: 'Transferencia realizada correctamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
-  async transferFrom(@Body() body: { spender: string; from: string; to: string; amount: string }) {
-    return this.tokenService.transferFrom(body.spender, body.from, body.to, body.amount);
+  async transferFrom(@Body() body: { from: string; to: string; amount: string }) {
+    return this.tokenService.transferFrom(body.from, body.to, body.amount);
   }
 
   @Get('allowance')
@@ -90,8 +90,8 @@ export class TokenController {
   @ApiResponse({ status: 200, description: 'Tokens quemados correctamente' })
   @ApiResponse({ status: 401, description: 'No autorizado' })
   @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
-  async burn(@Body() body: { from: string; amount: string }) {
-    return this.tokenService.burn(body.from, body.amount);
+  async burn(@Body() body: { amount: string }) {
+    return this.tokenService.burn(body.amount);
   }
 
   @Get('transaction-history/:address')

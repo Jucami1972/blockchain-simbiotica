@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-import { Body, Controller, Get, Post, Param, UseGuards, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Param, UseGuards, Query, Put } from '@nestjs/common';
 import { TelemedicinService } from './telemedicin.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -56,14 +56,13 @@ export class TelemedicinController {
   @ApiResponse({ status: 401, description: 'No autorizado' })
   async scheduleAppointment(
     @Body() body: {
-      appointmentId: string;
       patientId: string;
       doctorId: string;
       appointmentData: string;
     },
   ) {
+    // El ID de la cita lo genera el chaincode
     return this.telemedicinService.scheduleAppointment(
-      body.appointmentId,
       body.patientId,
       body.doctorId,
       body.appointmentData,
@@ -169,14 +168,13 @@ export class TelemedicinController {
   @ApiResponse({ status: 403, description: 'Prohibido - Rol insuficiente' })
   async recordPrescription(
     @Body() body: {
-      prescriptionId: string;
       patientId: string;
       doctorId: string;
       prescriptionData: string;
     },
   ) {
+    // El ID lo genera el chaincode (createPrescription)
     return this.telemedicinService.recordPrescription(
-      body.prescriptionId,
       body.patientId,
       body.doctorId,
       body.prescriptionData,

@@ -1,12 +1,12 @@
 /**
  * Copyright (c) 2025 Blockchain Simbiótica
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *     http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -14,204 +14,113 @@
  * limitations under the License.
  */
 
-import { Body, Controller, Get, Post, Put, Param, UseGuards, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Put, Delete, Param, Query, UseGuards } from '@nestjs/common';
 import { IdentityService } from './identity.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
-import { RolesGuard } from '../auth/guards/roles.guard';
-import { Roles } from '../auth/decorators/roles.decorator';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 
 @ApiTags('identity')
 @Controller('identity')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
 export class IdentityController {
   constructor(private readonly identityService: IdentityService) {}
 
-  @Post()
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Registrar una nueva identidad' })
-  @ApiResponse({ status: 201, description: 'Identidad registrada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async registerIdentity(@Body() body: { identityId: string; ownerDid: string; identityData: string }) {
-    return this.identityService.registerIdentity(body.identityId, body.ownerDid, body.identityData);
+  @Post('users')
+  @ApiOperation({ summary: 'Registrar un nuevo usuario' })
+  @ApiResponse({ status: 201, description: 'Usuario registrado correctamente' })
+  async registerUser(@Body() body: { userId: string; userData: string }) {
+    return this.identityService.registerUser(body.userId, body.userData);
   }
 
-  @Get(':identityId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener información de una identidad' })
-  @ApiResponse({ status: 200, description: 'Información de la identidad obtenida correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getIdentity(@Param('identityId') identityId: string) {
-    return this.identityService.getIdentity(identityId);
+  @Get('users')
+  @ApiOperation({ summary: 'Listar usuarios' })
+  @ApiResponse({ status: 200, description: 'Usuarios obtenidos correctamente' })
+  async getUsers(@Query('limit') limit?: number, @Query('offset') offset?: number) {
+    return this.identityService.getUsers(limit, offset);
   }
 
-  @Put(':identityId')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Actualizar una identidad existente' })
-  @ApiResponse({ status: 200, description: 'Identidad actualizada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async updateIdentity(
-    @Param('identityId') identityId: string,
-    @Body() body: { ownerDid: string; identityData: string },
+  @Get('users/by-username/:username')
+  @ApiOperation({ summary: 'Buscar usuario por nombre de usuario' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado' })
+  async getUserByUsername(@Param('username') username: string) {
+    return this.identityService.getUserByUsername(username);
+  }
+
+  @Get('users/by-email')
+  @ApiOperation({ summary: 'Buscar usuario por correo electronico' })
+  @ApiResponse({ status: 200, description: 'Usuario encontrado' })
+  async getUserByEmail(@Query('email') email: string) {
+    return this.identityService.getUserByEmail(email);
+  }
+
+  @Get('users/:userId')
+  @ApiOperation({ summary: 'Obtener informacion de un usuario' })
+  @ApiResponse({ status: 200, description: 'Informacion del usuario obtenida correctamente' })
+  async getUser(@Param('userId') userId: string) {
+    return this.identityService.getUser(userId);
+  }
+
+  @Put('users/:userId')
+  @ApiOperation({ summary: 'Actualizar un usuario' })
+  @ApiResponse({ status: 200, description: 'Usuario actualizado correctamente' })
+  async updateUser(
+    @Param('userId') userId: string,
+    @Body() body: { userData: string },
   ) {
-    return this.identityService.updateIdentity(identityId, body.ownerDid, body.identityData);
+    return this.identityService.updateUser(userId, body.userData);
   }
 
-  @Post(':identityId/revoke')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Revocar una identidad' })
-  @ApiResponse({ status: 200, description: 'Identidad revocada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async revokeIdentity(
-    @Param('identityId') identityId: string,
-    @Body() body: { ownerDid: string; reason: string },
+  @Delete('users/:userId')
+  @ApiOperation({ summary: 'Eliminar un usuario' })
+  @ApiResponse({ status: 200, description: 'Usuario eliminado correctamente' })
+  async deleteUser(@Param('userId') userId: string) {
+    return this.identityService.deleteUser(userId);
+  }
+
+  @Get('users/:userId/credentials')
+  @ApiOperation({ summary: 'Obtener todas las credenciales de un usuario' })
+  @ApiResponse({ status: 200, description: 'Credenciales obtenidas correctamente' })
+  async getUserCredentials(@Param('userId') userId: string) {
+    return this.identityService.getUserCredentials(userId);
+  }
+
+  @Post('credentials')
+  @ApiOperation({ summary: 'Registrar una nueva credencial' })
+  @ApiResponse({ status: 201, description: 'Credencial registrada correctamente' })
+  async registerCredential(
+    @Body() body: { credentialId: string; userId: string; issuer: string; credentialData: string },
   ) {
-    return this.identityService.revokeIdentity(identityId, body.ownerDid, body.reason);
-  }
-
-  @Post(':identityId/verify')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verificar una identidad' })
-  @ApiResponse({ status: 200, description: 'Identidad verificada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async verifyIdentity(
-    @Param('identityId') identityId: string,
-    @Body() body: { verifierDid: string; verificationData: string },
-  ) {
-    return this.identityService.verifyIdentity(identityId, body.verifierDid, body.verificationData);
-  }
-
-  @Get(':identityId/verification-history')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener historial de verificaciones de una identidad' })
-  @ApiResponse({ status: 200, description: 'Historial de verificaciones obtenido correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getVerificationHistory(@Param('identityId') identityId: string) {
-    return this.identityService.getVerificationHistory(identityId);
-  }
-
-  @Post(':identityId/credentials')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Añadir una credencial a una identidad' })
-  @ApiResponse({ status: 201, description: 'Credencial añadida correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async addCredential(
-    @Param('identityId') identityId: string,
-    @Body() body: { credentialId: string; issuerDid: string; credentialData: string },
-  ) {
-    return this.identityService.addCredential(
-      identityId,
+    return this.identityService.registerCredential(
       body.credentialId,
-      body.issuerDid,
+      body.userId,
+      body.issuer,
       body.credentialData,
     );
   }
 
-  @Post(':identityId/credentials/:credentialId/revoke')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @Get('credentials/:credentialId')
+  @ApiOperation({ summary: 'Obtener una credencial' })
+  @ApiResponse({ status: 200, description: 'Credencial obtenida correctamente' })
+  async getCredential(@Param('credentialId') credentialId: string) {
+    return this.identityService.getCredential(credentialId);
+  }
+
+  @Post('credentials/:credentialId/revoke')
   @ApiOperation({ summary: 'Revocar una credencial' })
   @ApiResponse({ status: 200, description: 'Credencial revocada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
   async revokeCredential(
-    @Param('identityId') identityId: string,
     @Param('credentialId') credentialId: string,
-    @Body() body: { issuerDid: string; reason: string },
+    @Body() body: { reason: string },
   ) {
-    return this.identityService.revokeCredential(
-      identityId,
-      credentialId,
-      body.issuerDid,
-      body.reason,
-    );
+    // El revocador lo registra el chaincode según la identidad del llamante
+    return this.identityService.revokeCredential(credentialId, body.reason);
   }
 
-  @Get(':identityId/credentials/:credentialId/verify')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
+  @Post('credentials/:credentialId/verify')
   @ApiOperation({ summary: 'Verificar una credencial' })
   @ApiResponse({ status: 200, description: 'Credencial verificada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async verifyCredential(
-    @Param('identityId') identityId: string,
-    @Param('credentialId') credentialId: string,
-    @Query('verifierDid') verifierDid: string,
-  ) {
-    return this.identityService.verifyCredential(identityId, credentialId, verifierDid);
-  }
-
-  @Get(':identityId/credentials')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener todas las credenciales de una identidad' })
-  @ApiResponse({ status: 200, description: 'Credenciales obtenidas correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getCredentials(@Param('identityId') identityId: string) {
-    return this.identityService.getCredentials(identityId);
-  }
-
-  @Post('verification-requests')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Crear una solicitud de verificación' })
-  @ApiResponse({ status: 201, description: 'Solicitud de verificación creada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async createVerificationRequest(
-    @Body() body: {
-      requestId: string;
-      identityId: string;
-      verifierDid: string;
-      requestData: string;
-    },
-  ) {
-    return this.identityService.createVerificationRequest(
-      body.requestId,
-      body.identityId,
-      body.verifierDid,
-      body.requestData,
-    );
-  }
-
-  @Post('verification-requests/:requestId/respond')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Responder a una solicitud de verificación' })
-  @ApiResponse({ status: 200, description: 'Respuesta enviada correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async respondToVerificationRequest(
-    @Param('requestId') requestId: string,
-    @Body() body: { identityId: string; responseData: string },
-  ) {
-    return this.identityService.respondToVerificationRequest(
-      requestId,
-      body.identityId,
-      body.responseData,
-    );
-  }
-
-  @Get(':identityId/verification-requests')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Obtener todas las solicitudes de verificación para una identidad' })
-  @ApiResponse({ status: 200, description: 'Solicitudes de verificación obtenidas correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async getVerificationRequests(@Param('identityId') identityId: string) {
-    return this.identityService.getVerificationRequests(identityId);
-  }
-
-  @Get('generate-did')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Generar un DID para una nueva identidad' })
-  @ApiResponse({ status: 200, description: 'DID generado correctamente' })
-  @ApiResponse({ status: 401, description: 'No autorizado' })
-  async generateDID(@Query('method') method?: string) {
-    return { did: await this.identityService.generateDID(method) };
+  async verifyCredential(@Param('credentialId') credentialId: string) {
+    return this.identityService.verifyCredential(credentialId);
   }
 }

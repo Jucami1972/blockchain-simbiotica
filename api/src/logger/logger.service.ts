@@ -135,3 +135,6 @@ export class LoggerService {
     return `${year}-${month}-${day}`;
   }
 }
+
+// Alias: varios servicios importan { Logger } desde este modulo
+export { LoggerService as Logger };

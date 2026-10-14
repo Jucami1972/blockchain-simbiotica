@@ -88,24 +88,22 @@ export class TelemedicinService {
    * @returns Información de la consulta programada
    */
   async scheduleAppointment(
-    appointmentId: string,
     patientId: string,
     doctorId: string,
     appointmentData: string
   ): Promise<any> {
     try {
-      this.logger.log(`Programando consulta con ID: ${appointmentId}`);
+      this.logger.log(`Programando cita para paciente ${patientId}`);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método scheduleAppointment del contrato telemedicina
+      // El chaincode genera el ID de la cita (scheduleAppointment: patientId, doctorId, appointmentData)
       const result = await this.blockchainService.submitTransaction(
         'telemedicina',
         'scheduleAppointment',
-        appointmentId,
         patientId,
         doctorId,
         appointmentData
@@ -295,24 +293,22 @@ export class TelemedicinService {
    * @returns Información de la prescripción registrada
    */
   async recordPrescription(
-    prescriptionId: string,
     patientId: string,
     doctorId: string,
     prescriptionData: string
   ): Promise<any> {
     try {
-      this.logger.log(`Registrando prescripción con ID: ${prescriptionId}`);
+      this.logger.log(`Registrando prescripción para paciente ${patientId}`);
       
       // Verificar que el servicio blockchain esté conectado
       if (!this.blockchainService.isConnected()) {
         throw new Error('No hay conexión con la blockchain');
       }
       
-      // Llamar al método recordPrescription del contrato telemedicina
+      // El chaincode genera el ID (createPrescription: patientId, doctorId, prescriptionData)
       const result = await this.blockchainService.submitTransaction(
         'telemedicina',
-        'recordPrescription',
-        prescriptionId,
+        'createPrescription',
         patientId,
         doctorId,
         prescriptionData
