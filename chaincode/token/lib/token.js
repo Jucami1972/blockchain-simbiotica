@@ -626,6 +626,183 @@ class TokenContract extends Contract {
         
         return history;
     }
+
+    /**
+     * Obtiene el suministro total del token
+     * @param {Context} ctx - Contexto de transacción
+     * @returns {String} - Suministro total inicial del token
+     */
+    async totalSupply(ctx) {
+        const tokenConfigBuffer = await ctx.stub.getState('tokenConfig');
+        if (!tokenConfigBuffer || tokenConfigBuffer.length === 0) {
+            throw new Error('El token no ha sido inicializado');
+        }
+        const tokenConfig = JSON.parse(tokenConfigBuffer.toString());
+        return tokenConfig.totalSupply;
+    }
+
+    /**
+     * Bloquea tokens de una dirección con un motivo (modelo operador)
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} address - Dirección de la que se bloquean los tokens
+     * @param {String} amount - Cantidad a bloquear
+     * @param {String} reason - Motivo del bloqueo
+     * @returns {Object} - Registro del bloqueo creado
+     */
+    async lockTokens(ctx, address, amount, reason) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!address || !amount || !reason) {
+            throw new Error('Parámetros inválidos: se requiere address, amount y reason');
+        }
+
+        const amountBigInt = BigInt(amount);
+        if (amountBigInt <= BigInt(0)) {
+            throw new Error('La cantidad debe ser mayor que cero');
+        }
+
+        // Obtener saldo de la dirección
+        const balanceBuffer = await ctx.stub.getState(`balance_${address}`);
+        if (!balanceBuffer || balanceBuffer.length === 0) {
+            throw new Error(`La dirección ${address} no tiene saldo`);
+        }
+        const balance = JSON.parse(balanceBuffer.toString());
+
+        if (BigInt(balance.balance) < amountBigInt) {
+            throw new Error('Saldo insuficiente para bloquear');
+        }
+
+        // Descontar del saldo disponible
+        balance.balance = (BigInt(balance.balance) - amountBigInt).toString();
+        await ctx.stub.putState(`balance_${address}`, Buffer.from(JSON.stringify(balance)));
+
+        // Registrar el bloqueo
+        const now = new Date();
+        const lockId = `lock_${address}_${now.getTime()}`;
+        const lock = {
+            lockId: lockId,
+            address: address,
+            amount: amountBigInt.toString(),
+            reason: reason,
+            lockedAt: now.toISOString(),
+            lockedBy: caller,
+            status: 'locked'
+        };
+
+        let lockedRecord;
+        const lockedBuffer = await ctx.stub.getState(`locked_${address}`);
+        if (lockedBuffer && lockedBuffer.length > 0) {
+            lockedRecord = JSON.parse(lockedBuffer.toString());
+        } else {
+            lockedRecord = { address: address, totalLocked: '0', locks: [] };
+        }
+        lockedRecord.locks.push(lock);
+        lockedRecord.totalLocked = (BigInt(lockedRecord.totalLocked) + amountBigInt).toString();
+        await ctx.stub.putState(`locked_${address}`, Buffer.from(JSON.stringify(lockedRecord)));
+
+        const lockEvent = {
+            type: 'lockTokens',
+            lockId: lockId,
+            address: address,
+            amount: lock.amount,
+            reason: reason,
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('TokensLocked', Buffer.from(JSON.stringify(lockEvent)));
+
+        return lock;
+    }
+
+    /**
+     * Desbloquea tokens de una dirección (libera los bloqueos más antiguos primero)
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} address - Dirección de la que se desbloquean los tokens
+     * @param {String} amount - Cantidad a desbloquear
+     * @returns {Object} - Resumen del desbloqueo
+     */
+    async unlockTokens(ctx, address, amount) {
+        const caller = ctx.clientIdentity.getID();
+
+        // Validar parámetros
+        if (!address || !amount) {
+            throw new Error('Parámetros inválidos: se requiere address y amount');
+        }
+
+        let remainingBigInt = BigInt(amount);
+        if (remainingBigInt <= BigInt(0)) {
+            throw new Error('La cantidad debe ser mayor que cero');
+        }
+
+        const lockedBuffer = await ctx.stub.getState(`locked_${address}`);
+        if (!lockedBuffer || lockedBuffer.length === 0) {
+            throw new Error(`La dirección ${address} no tiene tokens bloqueados`);
+        }
+        const lockedRecord = JSON.parse(lockedBuffer.toString());
+
+        if (BigInt(lockedRecord.totalLocked) < remainingBigInt) {
+            throw new Error('La cantidad a desbloquear excede los tokens bloqueados');
+        }
+
+        // Liberar bloqueos en orden FIFO
+        const now = new Date();
+        for (const lock of lockedRecord.locks) {
+            if (remainingBigInt <= BigInt(0)) break;
+            if (lock.status !== 'locked') continue;
+            const lockAmount = BigInt(lock.amount);
+            const release = lockAmount <= remainingBigInt ? lockAmount : remainingBigInt;
+            lock.amount = (lockAmount - release).toString();
+            remainingBigInt = remainingBigInt - release;
+            if (BigInt(lock.amount) === BigInt(0)) {
+                lock.status = 'released';
+                lock.releasedAt = now.toISOString();
+                lock.releasedBy = caller;
+            }
+        }
+
+        const unlockedBigInt = BigInt(amount) - remainingBigInt;
+        lockedRecord.totalLocked = (BigInt(lockedRecord.totalLocked) - unlockedBigInt).toString();
+        await ctx.stub.putState(`locked_${address}`, Buffer.from(JSON.stringify(lockedRecord)));
+
+        // Devolver al saldo disponible
+        const balanceBuffer = await ctx.stub.getState(`balance_${address}`);
+        const balance = JSON.parse(balanceBuffer.toString());
+        balance.balance = (BigInt(balance.balance) + unlockedBigInt).toString();
+        await ctx.stub.putState(`balance_${address}`, Buffer.from(JSON.stringify(balance)));
+
+        const unlockEvent = {
+            type: 'unlockTokens',
+            address: address,
+            amount: unlockedBigInt.toString(),
+            timestamp: now.toISOString()
+        };
+        await ctx.stub.setEvent('TokensUnlocked', Buffer.from(JSON.stringify(unlockEvent)));
+
+        return {
+            address: address,
+            unlocked: unlockedBigInt.toString(),
+            remainingLocked: lockedRecord.totalLocked
+        };
+    }
+
+    /**
+     * Obtiene los tokens bloqueados de una dirección
+     * @param {Context} ctx - Contexto de transacción
+     * @param {String} address - Dirección a consultar
+     * @returns {Object} - Registro de bloqueos de la dirección
+     */
+    async getLockedTokens(ctx, address) {
+        if (!address) {
+            throw new Error('Parámetros inválidos: se requiere address');
+        }
+
+        const lockedBuffer = await ctx.stub.getState(`locked_${address}`);
+        if (!lockedBuffer || lockedBuffer.length === 0) {
+            return { address: address, totalLocked: '0', locks: [] };
+        }
+
+        return JSON.parse(lockedBuffer.toString());
+    }
 }
 
 module.exports = TokenContract;
