@@ -8,8 +8,9 @@
 #   ./deploy-fabric.sh
 #
 # Requisito previo: network/channel-artifacts/simbiochannel.tx debe ser la
-# transacción binaria generada con configtxgen (varios KB). El script lo
-# verifica antes de empezar y falla con instrucciones si no lo es.
+# transacción binaria generada con configtxgen (~493 bytes para este proyecto;
+# es compacta porque los MSP se resuelven desde el consorcio del system-channel).
+# El script lo verifica antes de empezar y falla con instrucciones si no lo es.
 #
 set -euo pipefail
 
@@ -30,16 +31,26 @@ echo "    montaje OK"
 
 echo "==> Verificando que el .tx del canal sea una transacción binaria válida..."
 TX_SIZE=$(docker exec "$CLI" stat -c %s "$TX" 2>/dev/null || echo 0)
-if [ "$TX_SIZE" -lt 1000 ]; then
-  echo "ERROR: $TX mide $TX_SIZE bytes; no parece una transacción binaria válida."
+TX_TYPE=$(docker exec "$CLI" file -b "$TX" 2>/dev/null || echo "desconocido")
+if echo "$TX_TYPE" | grep -qiE "ascii|text"; then
+  echo "ERROR: $TX es texto ($TX_TYPE), no una transacción binaria."
   echo "Regenérala con configtxgen (desde ~/blockchain-simbiotica/network):"
   echo "  docker run --rm -v \"\$PWD\":/config -w /config -e FABRIC_CFG_PATH=/config hyperledger/fabric-tools:2.5 \\"
   echo "    configtxgen -profile SimbioticaChannel -channelID simbioticachannel \\"
   echo "    -outputCreateChannelTx ./channel-artifacts/simbiochannel.tx"
-  echo "Verifica después: 'file channel-artifacts/simbiochannel.tx' debe decir 'data' y medir varios KB."
+  echo "Verifica después: 'file channel-artifacts/simbiochannel.tx' debe decir 'data' (~493 bytes)."
   exit 1
 fi
-echo "    tx OK ($TX_SIZE bytes)"
+if [ "$TX_SIZE" -lt 400 ]; then
+  echo "ERROR: $TX mide $TX_SIZE bytes (< 400); no parece una transacción válida."
+  echo "Regenérala con configtxgen (desde ~/blockchain-simbiotica/network):"
+  echo "  docker run --rm -v \"\$PWD\":/config -w /config -e FABRIC_CFG_PATH=/config hyperledger/fabric-tools:2.5 \\"
+  echo "    configtxgen -profile SimbioticaChannel -channelID simbioticachannel \\"
+  echo "    -outputCreateChannelTx ./channel-artifacts/simbiochannel.tx"
+  echo "Verifica después: 'file channel-artifacts/simbiochannel.tx' debe decir 'data' (~493 bytes)."
+  exit 1
+fi
+echo "    tx OK: binario ($TX_TYPE), $TX_SIZE bytes"
 
 echo "==> Creando canal $CHANNEL (o reutilizando si ya existe)..."
 docker exec -i \
